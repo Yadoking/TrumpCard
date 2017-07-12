@@ -39,7 +39,6 @@ void AnalyzerDelphes::Loop(const double hadW_m)
   TH1F* hHW_dR = new TH1F("hHW_dR", "Hadronic W #DeltaR", 100, 0, 5);
   TH1F* hHT_m = new TH1F("hHT_m", "Hadronic Top Mass", 100, 0, 300);
   TH1F* hJES = new TH1F("hJES", "Residual JES", 100, 0, 2);
-  TH1F* hHadJJ_dR = new TH1F("hHadJJ_dR", "hHadJJ_dR", 100, 0, 5);
   TH1F* hAddJJ_dR = new TH1F("hAddJJ_dR", "hAddJJ_dR", 100, 0, 5);
   TH1F* hAddJJ_m = new TH1F("hAddJJ_m", "hAddJJ_m", 100, 0, 300);
 
@@ -109,8 +108,6 @@ void AnalyzerDelphes::Loop(const double hadW_m)
       const auto& sol_nuP4 = solution[0], sol_lepP4 = solution[1], sol_ljP4 = solution[2];
       const auto& sol_wj1P4 = solution[3], sol_wj2P4 = solution[4], sol_hbP4 = solution[5];
 
-      const double hadJJ_dR = sol_wj1P4.DeltaR(sol_wj2P4);
-      hHadJJ_dR->Fill(hadJJ_dR);
       hLW_m->Fill( (sol_lepP4+sol_nuP4).M() );
       hLT_m->Fill( (sol_lepP4+sol_nuP4+sol_ljP4).M() );
       hHW_m->Fill( (sol_wj1P4+sol_wj2P4).M() );
@@ -154,9 +151,7 @@ void AnalyzerDelphes::Loop(const double hadW_m)
   fout->Write();
 
   TCanvas* c = 0;
-  c = new TCanvas("cHadJJ_dR", "hadJJ dR", 500, 500); hHadJJ_dR->Draw();
   c = new TCanvas("cAddJJ_dR", "addJJ dR", 500, 500); hAddJJ_dR->Draw();
-  c = new TCanvas("cHadJJ_m", "hadJJ m", 500, 500); hAddJJ_m->Draw();
   c = new TCanvas("cLW_m", "MW lep", 500, 500); hLW_m->Draw();
   c = new TCanvas("cLT_m", "MTop lep", 500, 500); hLT_m->Draw();
   c = new TCanvas("cHW_m", "MW had", 500, 500); hHW_m->Draw();
