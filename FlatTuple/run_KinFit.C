@@ -14,8 +14,8 @@ void run_DelphesAnalyzer();
 
 void run_KinFit()
 {
-  //run_CMSTuple();
-  run_DelphesTuple();
+  //run_CMSAnalyzer();
+  run_DelphesAnalyzer();
 }
 
 void run_CMSAnalyzer()
@@ -32,7 +32,7 @@ void run_CMSAnalyzer()
   }
   AnalyzerHYTuple t(&chain);
 
-  t.Loop(mode, Form("ntuple_%s.root", sample.c_str())); // mode set to FCNC, require 3 b jets
+  t.Loop(mode, Form("cmsTuple_%s.root", sample.c_str())); // mode set to FCNC, require 3 b jets
 }
 
 void run_DelphesAnalyzer()
@@ -46,5 +46,5 @@ void run_DelphesAnalyzer()
   }
   AnalyzerDelphes t(&chain);
 
-  t.Loop(mode, Form("ntuple_%s.root", sample.c_str())); // mode set to FCNC, require 3 b jets
+  t.Loop(mode, Form("delphes_%s.root", sample.c_str())); // mode set to FCNC, require 3 b jets
 }
