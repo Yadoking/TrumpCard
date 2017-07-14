@@ -45,8 +45,6 @@ TLorentzVector TTLJKinFitFtn::solveLepTopNu(TLorentzVector nu, const TLorentzVec
   const double a = pp*lep.Pz()/lep.Perp2();
   const double det = a*a + (pp*pp - lep.P()*lep.P()*nu.Perp2())/lep.Perp2();
   const double b = sqrt(max(0., det));
-  const double wpx = nu.Px()+lep.Px();
-  const double wpy = nu.Py()+lep.Py();
   TLorentzVector nuPos, nuNeg;
   nuPos.SetXYZM(nu.Px(), nu.Py(), a+b, 0);
   nuNeg.SetXYZM(nu.Px(), nu.Py(), a-b, 0);
