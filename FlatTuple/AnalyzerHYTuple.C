@@ -59,7 +59,7 @@ void AnalyzerHYTuple::Loop(const string modeStr, const string outFileName)
   float b_weight_gen;
   float b_lepton_pt, b_lepton_eta, b_lepton_phi;
   float b_met_pt, b_met_phi;
-  float b_kin_chi2;
+  float b_kin_chi2, b_kin_JES;
   int b_kin_bjetcode;
   float b_kin_lep_pt, b_kin_lep_eta, b_kin_lep_phi;
   float b_kin_nu_pt, b_kin_nu_eta, b_kin_nu_phi;
@@ -72,6 +72,7 @@ void AnalyzerHYTuple::Loop(const string modeStr, const string outFileName)
   float b_kin_hadW12_pt, b_kin_hadW12_eta, b_kin_hadW12_phi, b_kin_hadW12_m;
   float b_kin_hadW23_pt, b_kin_hadW23_eta, b_kin_hadW23_phi, b_kin_hadW23_m;
   float b_kin_hadT_pt, b_kin_hadT_eta, b_kin_hadT_phi, b_kin_hadT_m;
+  float b_kin_theta1, b_kin_theta2;
   float b_kin_lepB_CSV, b_kin_hadB_CSV, b_kin_hadJ1_CSV, b_kin_hadJ2_CSV;
   float b_kin_lepB_CvsB, b_kin_hadB_CvsB, b_kin_hadJ1_CvsB, b_kin_hadJ2_CvsB;
   float b_kin_lepB_CvsL, b_kin_hadB_CvsL, b_kin_hadJ1_CvsL, b_kin_hadJ2_CvsL;
@@ -101,6 +102,7 @@ void AnalyzerHYTuple::Loop(const string modeStr, const string outFileName)
   tree->Branch("kin_hadT_m", &b_kin_hadT_m, "kin_hadT_m/F");
 
   tree->Branch("kin_chi2", &b_kin_chi2, "kin_chi2/F");
+  tree->Branch("kin_JES", &b_kin_JES, "kin_JES/F");
   tree->Branch("kin_bjetcode", &b_kin_bjetcode, "kin_bjetcode/I"); // b-jet contribution "code". Format=[nbjetInLepT][nbjetInHadT]
   tree->Branch("kin_lep_pt", &b_kin_lep_pt, "kin_lep_pt/F");
   tree->Branch("kin_lep_eta", &b_kin_lep_eta, "kin_lep_eta/F");
@@ -139,6 +141,9 @@ void AnalyzerHYTuple::Loop(const string modeStr, const string outFileName)
   tree->Branch("kin_hadT_pt", &b_kin_hadT_pt, "kin_hadT_pt/F");
   tree->Branch("kin_hadT_eta", &b_kin_hadT_eta, "kin_hadT_eta/F");
   tree->Branch("kin_hadT_phi", &b_kin_hadT_phi, "kin_hadT_phi/F");
+
+  tree->Branch("kin_theta1", &b_kin_theta1, "kin_theta1/F"); // Angle between top and b
+  tree->Branch("kin_theta2", &b_kin_theta2, "kin_theta2/F"); // Angle between t-b and w->jj plane
 
   tree->Branch("kin_lepB_CSV", &b_kin_lepB_CSV, "kin_lepB_CSV/F");
   tree->Branch("kin_hadB_CSV", &b_kin_hadB_CSV, "kin_hadB_CSV/F");
@@ -271,6 +276,7 @@ void AnalyzerHYTuple::Loop(const string modeStr, const string outFileName)
       jetP4s[i].SetPtEtaPhiE(jets_pt[j], jets_eta[j], jets_phi[j], jets_e[j]);
     }
     b_kin_chi2 = fit.compute(metP4, leptonP4, jetP4s[0], jetP4s[1], jetP4s[2], jetP4s[3]);
+    b_kin_JES = fit.min_->X()[0];
     const std::vector<TLorentzVector> solution = fit.getSolution();
     const auto& sol_nuP4 = solution[0], sol_lepP4 = solution[1], sol_ljP4 = solution[2];
     const auto& sol_wj1P4 = solution[3], sol_wj2P4 = solution[4], sol_hbP4 = solution[5];
@@ -308,6 +314,18 @@ void AnalyzerHYTuple::Loop(const string modeStr, const string outFileName)
     b_kin_hadW12_pt = hadW12.Pt(); b_kin_hadW12_eta = hadW12.Eta(); b_kin_hadW12_phi = hadW12.Phi(); b_kin_hadW12_m = hadW12.M(); 
     b_kin_hadW23_pt = hadW23.Pt(); b_kin_hadW23_eta = hadW23.Eta(); b_kin_hadW23_phi = hadW23.Phi(); b_kin_hadW23_m = hadW23.M(); 
     b_kin_hadT_pt = hadT.Pt(); b_kin_hadT_eta = hadT.Eta(); b_kin_hadT_phi = hadT.Phi(); b_kin_hadT_m = hadT.M(); 
+
+    TLorentzVector cm_hb = sol_hbP4, cm_hj1 = sol_wj1P4, cm_hj2 = sol_wj2P4;
+    TLorentzVector cm_top = cm_hb+cm_hj1+cm_hj2;
+    cm_hb.Boost(-cm_top.BoostVector());
+    cm_hj1.Boost(-cm_top.BoostVector());
+    cm_hj2.Boost(-cm_top.BoostVector());
+    cm_hb *= 1./cm_hb.P();
+    cm_hj1 *= 1./cm_hj1.P();
+    cm_hj2 *= 1./cm_hj2.P();
+    cm_top *= 1./cm_top.P();
+    b_kin_theta1 = cm_hb.Vect().Dot(cm_top.Vect());
+    b_kin_theta2 = cm_hb.Vect().Cross(cm_hj1.Vect()).Dot(cm_hb.Vect().Cross(cm_top.Vect()));
 
     b_kin_lepB_CSV = jets_CSV[bestIdxs[0]];
     b_kin_hadJ1_CSV = jets_CSV[bestIdxs[1]];
