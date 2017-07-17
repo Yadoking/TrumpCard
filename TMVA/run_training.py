@@ -31,7 +31,7 @@ loader.AddVariable("m3_lepB_CvsL", "Leptonic B CvsL", "", "F")
 loader.AddVariable("m3_hadB_CvsL", "Hadronic B CvsL", "", "F")
 loader.AddVariable("m3_hadJ1_CvsL", "Hadronic J1 CvsL", "", "F")
 loader.AddVariable("m3_hadJ2_CvsL", "Hadronic J2 CvsL", "", "F")
-#loader.AddVariable("m3_nbjetInFit:=m3_bjetcode/10+m3_bjetcode%10", "B-jet multiplicity in the fit", "", "I")
+loader.AddVariable("m3_nbjetInHad:=m3_bjetcode%10", "B-jet multiplicity in the hadronic top", "", "I")
 loader.AddVariable("m3_theta1", "Theta1", "", "F")
 loader.AddVariable("m3_theta2", "Theta2", "", "F")
 
@@ -42,7 +42,7 @@ for name in ["lepB", "hadB", "hadJ1", "hadJ2"]:
     loader.AddVariable("m3_%s_m" % name, "%s mass" % name, "GeV", "F")
 
 #loader.AddSpectator("m3_bjetcode", "event category by nbjet in the fit")
-#loader.AddSpectator("vertex_n", "nVertex")
+loader.AddSpectator("vertex_n", "nVertex")
 
 ## Load input files
 #fsig = TFile("../FlatTuple/delphes_FCNC.root")
@@ -56,8 +56,8 @@ loader.AddSignalTree(tsig, 1.0)
 loader.AddBackgroundTree(tbkg, 1.0)
 #loader.SetBackgroundWeightExpression( "weight" );
 
-sigCut = TCut("m3_bjetcode%10 >= 2")
-bkgCut = TCut("m3_bjetcode%10 >= 2")
+sigCut = TCut("")#"m3_bjetcode%10 >= 2")
+bkgCut = TCut("")#"m3_bjetcode%10 >= 2")
 loader.PrepareTrainingAndTestTree(
     sigCut, bkgCut,
     #"nTrain_Signal=1000:nTrain_Background=1000:SplitMode=Random:NormMode=NumEvents:!V"
