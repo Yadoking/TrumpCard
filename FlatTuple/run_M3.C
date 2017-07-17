@@ -1,24 +1,21 @@
-#include "AnalyzeKinFitHYTuple.h"
-#include "AnalyzeKinFitDelphes.h"
-R__LOAD_LIBRARY(TTLJKinFit.C+)
-R__LOAD_LIBRARY(AnalyzeKinFitHYTuple.C+)
-R__LOAD_LIBRARY(AnalyzeKinFitDelphes.C+)
+#include "AnalyzeM3HYTuple.h"
+#include "AnalyzeM3Delphes.h"
+R__LOAD_LIBRARY(AnalyzeM3HYTuple.C+)
+R__LOAD_LIBRARY(AnalyzeM3Delphes.C+)
 
-const string mode = "FCNC";
-//const string mode = "tt";
 const string sample = "FCNC";
 //const string sample = "ttbb";
 
-void run_CMSKinFit();
-void run_DelphesKinFit();
+void run_CMSM3();
+void run_DelphesM3();
 
-void run_KinFit()
+void run_M3()
 {
-  //run_CMSKinFit();
-  run_DelphesKinFit();
+  run_CMSM3();
+  //run_DelphesM3();
 }
 
-void run_CMSKinFit()
+void run_CMSM3()
 {
   TChain chain("ttbbLepJets/tree");
   if ( sample == "FCNC" ) {
@@ -30,12 +27,12 @@ void run_CMSKinFit()
   else if ( sample == "ttbb" ) {
     chain.Add("/home/minerva1993/fcnc/ntuple_jw/v2/TT_powheg_ttbb.root");
   }
-  AnalyzeKinFitHYTuple t(&chain);
+  AnalyzeM3HYTuple t(&chain);
 
-  t.Loop(mode, Form("cmsTuple_%s.root", sample.c_str())); // mode set to FCNC, require 3 b jets
+  t.Loop(Form("cmsTuple_%s.root", sample.c_str()));
 }
 
-void run_DelphesKinFit()
+void run_DelphesM3()
 {
   TChain chain("tree");
   if ( sample == "FCNC" ) {
@@ -44,7 +41,7 @@ void run_DelphesKinFit()
   else if ( sample == "ttbb" ) {
     chain.Add("../Delphes2Flat/ntuple_ttbb.root");
   }
-  AnalyzeKinFitDelphes t(&chain);
+  AnalyzeM3Delphes t(&chain);
 
-  t.Loop(mode, Form("delphes_%s.root", sample.c_str())); // mode set to FCNC, require 3 b jets
+  t.Loop(Form("delphes_%s.root", sample.c_str()));
 }

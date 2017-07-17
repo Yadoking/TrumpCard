@@ -1,58 +1,58 @@
-#define AnalyzerHYTuple_cxx
+#define AnalyzeKinFitDelphes_cxx
 
 #include "TTLJKinFit.h"
 
-#include "AnalyzerHYTuple.h"
+#include "AnalyzeKinFitDelphes.h"
 #include <TH2.h>
 #include <TStyle.h>
 #include <TCanvas.h>
 
 #include <TLorentzVector.h>
 
-void AnalyzerHYTuple::Loop(const string modeStr, const string outFileName)
+void AnalyzeKinFitDelphes::Loop(const string modeStr, const string outFileName)
 {
-  //   In a ROOT session, you can do:
-  //      root> .L AnalyzerHYTuple.C
-  //      root> AnalyzerHYTuple t
-  //      root> t.GetEntry(12); // Fill t data members with entry number 12
-  //      root> t.Show();       // Show values of entry 12
-  //      root> t.Show(16);     // Read and show values of entry 16
-  //      root> t.Loop();       // Loop on all entries
-  //
+//   In a ROOT session, you can do:
+//      root> .L A.C
+//      root> A t
+//      root> t.GetEntry(12); // Fill t data members with entry number 12
+//      root> t.Show();       // Show values of entry 12
+//      root> t.Show(16);     // Read and show values of entry 16
+//      root> t.Loop();       // Loop on all entries
+//
 
-  //     This is the loop skeleton where:
-  //    jentry is the global entry number in the chain
-  //    ientry is the entry number in the current Tree
-  //  Note that the argument to GetEntry must be:
-  //    jentry for TChain::GetEntry
-  //    ientry for TTree::GetEntry and TBranch::GetEntry
-  //
-  //       To read only selected branches, Insert statements like:
-  // METHOD1:
-  //    fChain->SetBranchStatus("*",0);  // disable all branches
-  //    fChain->SetBranchStatus("branchname",1);  // activate branchname
-  // METHOD2: replace line
-  //    fChain->GetEntry(jentry);       //read all branches
-  //by  b_branchname->GetEntry(ientry); //read only this branch
+//     This is the loop skeleton where:
+//    jentry is the global entry number in the chain
+//    ientry is the entry number in the current Tree
+//  Note that the argument to GetEntry must be:
+//    jentry for TChain::GetEntry
+//    ientry for TTree::GetEntry and TBranch::GetEntry
+//
+//       To read only selected branches, Insert statements like:
+// METHOD1:
+//    fChain->SetBranchStatus("*",0);  // disable all branches
+//    fChain->SetBranchStatus("branchname",1);  // activate branchname
+// METHOD2: replace line
+//    fChain->GetEntry(jentry);       //read all branches
+//by  b_branchname->GetEntry(ientry); //read only this branch
 
   const double CSVM = 0.8484;
   const double CSVT = 0.9535;
   enum class Mode { TT=0, FCNC };
-  Mode mode = (modeStr == "FCNC") ? Mode::FCNC : Mode::TT;
+  const Mode mode = (modeStr == "FCNC") ? Mode::FCNC : Mode::TT;
 
   TFile* fout = new TFile(outFileName.c_str(), "recreate");
   TTree* tree = new TTree("tree", "tree");
   tree->SetDirectory(fout);
 
-  TH1F* hLW_m = new TH1F("hLW_m", "Leptonic W Mass", 100, 0, 300);
-  TH1F* hLT_m = new TH1F("hLT_m", "Leptonic Top Mass", 100, 0, 300);
-  TH1F* hHW_m = new TH1F("hHW_m", "Hadronic W Mass", 100, 0, 300);
-  TH1F* hHW_dR = new TH1F("hHW_dR", "Hadronic W DeltaR", 100, 0, 5);
-  TH1F* hHT_m = new TH1F("hHT_m", "Hadronic Top Mass", 100, 0, 300);
+  TH1F* hLW_m = new TH1F("hLW_m", "Leptonic W Mass", 250, 0, 500);
+  TH1F* hLT_m = new TH1F("hLT_m", "Leptonic Top Mass", 250, 0, 500);
+  TH1F* hHW_m = new TH1F("hHW_m", "Hadronic W Mass", 250, 0, 500);
+  TH1F* hHW_dR = new TH1F("hHW_dR", "Hadronic W #DeltaR", 100, 0, 5);
+  TH1F* hHT_m = new TH1F("hHT_m", "Hadronic Top Mass", 250, 0, 500);
   TH1F* hJES = new TH1F("hJES", "Residual JES", 100, 0, 2);
   TH1F* heta = new TH1F("heta", "eta", 100, -5, 5);
   TH1F* hAddJJ_dR = new TH1F("hAddJJ_dR", "hAddJJ_dR", 100, 0, 5);
-  TH1F* hAddJJ_m = new TH1F("hAddJJ_m", "hAddJJ_m", 100, 0, 300);
+  TH1F* hAddJJ_m = new TH1F("hAddJJ_m", "hAddJJ_m", 250, 0, 500);
 
   int b_run, b_event, b_vertex_n;
   int b_jets_n, b_bjets_n;
@@ -69,8 +69,8 @@ void AnalyzerHYTuple::Loop(const string modeStr, const string outFileName)
   float b_kin_hadJ1_pt, b_kin_hadJ1_eta, b_kin_hadJ1_phi, b_kin_hadJ1_m;
   float b_kin_hadJ2_pt, b_kin_hadJ2_eta, b_kin_hadJ2_phi, b_kin_hadJ2_m;
   float b_kin_hadB_pt, b_kin_hadB_eta, b_kin_hadB_phi, b_kin_hadB_m;
-  float b_kin_hadW12_pt, b_kin_hadW12_eta, b_kin_hadW12_phi, b_kin_hadW12_m;
-  float b_kin_hadW23_pt, b_kin_hadW23_eta, b_kin_hadW23_phi, b_kin_hadW23_m;
+  float b_kin_hadW12_pt, b_kin_hadW12_eta, b_kin_hadW12_phi, b_kin_hadW12_m, b_kin_hadW12_dR;
+  float b_kin_hadW23_pt, b_kin_hadW23_eta, b_kin_hadW23_phi, b_kin_hadW23_m, b_kin_hadW23_dR;
   float b_kin_hadT_pt, b_kin_hadT_eta, b_kin_hadT_phi, b_kin_hadT_m;
   float b_kin_theta1, b_kin_theta2;
   float b_kin_lepB_CSV, b_kin_hadB_CSV, b_kin_hadJ1_CSV, b_kin_hadJ2_CSV;
@@ -135,9 +135,11 @@ void AnalyzerHYTuple::Loop(const string modeStr, const string outFileName)
   tree->Branch("kin_hadW12_pt", &b_kin_hadW12_pt, "kin_hadW12_pt/F");
   tree->Branch("kin_hadW12_eta", &b_kin_hadW12_eta, "kin_hadW12_eta/F");
   tree->Branch("kin_hadW12_phi", &b_kin_hadW12_phi, "kin_hadW12_phi/F");
+  tree->Branch("kin_hadW12_dR", &b_kin_hadW12_dR, "kin_hadW12_dR/F");
   tree->Branch("kin_hadW23_pt", &b_kin_hadW23_pt, "kin_hadW23_pt/F");
   tree->Branch("kin_hadW23_eta", &b_kin_hadW23_eta, "kin_hadW23_eta/F");
   tree->Branch("kin_hadW23_phi", &b_kin_hadW23_phi, "kin_hadW23_phi/F");
+  tree->Branch("kin_hadW23_dR", &b_kin_hadW23_dR, "kin_hadW23_dR/F");
   tree->Branch("kin_hadT_pt", &b_kin_hadT_pt, "kin_hadT_pt/F");
   tree->Branch("kin_hadT_eta", &b_kin_hadT_eta, "kin_hadT_eta/F");
   tree->Branch("kin_hadT_phi", &b_kin_hadT_phi, "kin_hadT_phi/F");
@@ -177,7 +179,7 @@ void AnalyzerHYTuple::Loop(const string modeStr, const string outFileName)
 
   if (fChain == 0) return;
 
-  TTLJKinFit fit(-1); // do not apply mass constraint on the dijet among trijets system
+  TTLJKinFit fit(-1);
 
   //Long64_t nentries = 10000;
   Long64_t nentries = fChain->GetEntries();
@@ -192,30 +194,30 @@ void AnalyzerHYTuple::Loop(const string modeStr, const string outFileName)
 
     b_run = run;
     b_event = event;
-    b_vertex_n = GoodPV;
-    b_weight_gen = genweight;
+    b_vertex_n = 1;
+    b_weight_gen = 1;
 
     TLorentzVector leptonP4;
-    leptonP4.SetPtEtaPhiE(lepton_pT, lepton_eta, lepton_phi, lepton_E);
-    if ( leptonP4.Pt() < 30 or std::abs(leptonP4.Eta()) > 2.1 ) continue;
+    if ( muons_n >= 1 and muons_pt[0] > 30 and std::abs(muons_eta[0]) < 2.1 ) {
+      leptonP4.SetPtEtaPhiM(muons_pt[0], muons_eta[0], muons_phi[0], muons_m[0]);
+    }
+    else if ( electrons_n >= 1 and electrons_pt[0] > 30 and std::abs(electrons_eta[0]) < 2.1 ) {
+      leptonP4.SetPtEtaPhiM(electrons_pt[0], electrons_eta[0], electrons_phi[0], electrons_m[0]);
+    }
+    else continue;
 
-    b_lepton_pt = lepton_pT;
-    b_lepton_eta = lepton_eta;
-    b_lepton_phi = lepton_phi;
+    b_lepton_pt = leptonP4.Pt();
+    b_lepton_eta = leptonP4.Eta();
+    b_lepton_phi = leptonP4.Phi();
 
     TLorentzVector metP4;
-    metP4.SetPtEtaPhiM(MET, 0, MET_phi, 0);
-
-    b_met_pt = MET;
-    b_met_phi = MET_phi;
+    metP4.SetPtEtaPhiM(met_pt, 0, met_phi, 0);
 
     std::vector<size_t> jetIdxs;
-    const auto jets_pt = *jet_pT, jets_eta = *jet_eta, jets_phi = *jet_phi, jets_e = *jet_E;
-    const auto jets_CSV = *jet_CSV, jets_CvsB = *jet_CvsB, jets_CvsL = *jet_CvsL;
     b_bjets_n = 0;
-    for ( int j=0; j<jet_number; ++j ) {
+    for ( size_t j=0; j<jets_n; ++j ) {
       if ( jets_pt[j] < 30 or std::abs(jets_eta[j]) > 2.5 ) continue;
-      if ( jets_CSV[j] > CSVM ) ++b_bjets_n;
+      if ( jets_bTag[j] > CSVM ) ++b_bjets_n;
       jetIdxs.push_back(j);
     }
     if ( jetIdxs.size() < 4 ) continue;
@@ -225,22 +227,21 @@ void AnalyzerHYTuple::Loop(const string modeStr, const string outFileName)
     std::vector<size_t> bestIdxs;
     TLorentzVector jetP4s[4];
     for ( size_t j1 : jetIdxs ) {
-      jetP4s[0].SetPtEtaPhiE(jets_pt[j1], jets_eta[j1], jets_phi[j1], jets_e[j1]);
-      const int nbjetsInLepT = (jets_CSV[j1] > CSVM) ? 1 : 0;
+      jetP4s[0].SetPtEtaPhiM(jets_pt[j1], jets_eta[j1], jets_phi[j1], jets_m[j1]);
+      const int nbjetsInLepT = (jets_bTag[j1] > CSVM ) ? 1 : 0;
       for ( size_t j2 : jetIdxs ) {
         if ( j2 == j1 ) continue;
-        jetP4s[1].SetPtEtaPhiE(jets_pt[j2], jets_eta[j2], jets_phi[j2], jets_e[j2]);
+        jetP4s[1].SetPtEtaPhiM(jets_pt[j2], jets_eta[j2], jets_phi[j2], jets_m[j2]);
         for ( size_t j3 : jetIdxs ) {
           if ( j2 >= j3 ) continue;
           if ( j3 == j1 ) continue;
-          jetP4s[2].SetPtEtaPhiE(jets_pt[j3], jets_eta[j3], jets_phi[j3], jets_e[j3]);
+          jetP4s[2].SetPtEtaPhiM(jets_pt[j3], jets_eta[j3], jets_phi[j3], jets_m[j3]);
           for ( size_t j4 : jetIdxs ) {
             if ( j4 == j3 or j4 == j2 or j4 == j1 ) continue;
-            // Apply b-tag requirements
             int nbjetsInHadT = 0;
-            if ( jets_CSV[j2] > CSVM ) ++nbjetsInHadT;
-            if ( jets_CSV[j3] > CSVM ) ++nbjetsInHadT;
-            if ( jets_CSV[j4] > CSVM ) ++nbjetsInHadT;
+            if ( jets_bTag[j2] > CSVM ) ++nbjetsInHadT;
+            if ( jets_bTag[j3] > CSVM ) ++nbjetsInHadT;
+            if ( jets_bTag[j4] > CSVM ) ++nbjetsInHadT;
             if ( mode == Mode::TT ) {
               // SM ttbar mode: require at least one b jet used
               if ( b_bjets_n >= 2 and nbjetsInHadT < 1 ) continue;
@@ -252,8 +253,8 @@ void AnalyzerHYTuple::Loop(const string modeStr, const string outFileName)
               if ( b_bjets_n >= 3 and nbjetsInHadT < 2 ) continue; // at least two b jets in hadronic side
               else if ( b_bjets_n == 2 and nbjetsInHadT < 1 ) continue; // at least one b jet in hadronic side
             }
-
-            jetP4s[3].SetPtEtaPhiE(jets_pt[j4], jets_eta[j4], jets_phi[j4], jets_e[j4]);
+    
+            jetP4s[3].SetPtEtaPhiM(jets_pt[j4], jets_eta[j4], jets_phi[j4], jets_m[j4]);
             const double chi2 = fit.compute(metP4, leptonP4, jetP4s[0], jetP4s[1], jetP4s[2], jetP4s[3]);
 
             if ( chi2 < bestChi2 ) {
@@ -269,11 +270,11 @@ void AnalyzerHYTuple::Loop(const string modeStr, const string outFileName)
     // Sort by CSV in increasing order - j1+j2 will prefer 80GeV for SM top, j2+j3 will prefer 125GeV for FCNC top
     // Keep j0 as is which is the jet from leptonically decaying top
     std::sort(std::next(bestIdxs.begin()), bestIdxs.end(),
-              [&](size_t a, size_t b){ return jets_CSV[a] < jets_CSV[b]; });
+              [&](size_t a, size_t b){ return jets_bTag[a] < jets_bTag[b]; });
 
     for ( size_t i=0; i<4; ++i ) {
       const size_t j = bestIdxs[i];
-      jetP4s[i].SetPtEtaPhiE(jets_pt[j], jets_eta[j], jets_phi[j], jets_e[j]);
+      jetP4s[i].SetPtEtaPhiM(jets_pt[j], jets_eta[j], jets_phi[j], jets_m[j]);
     }
     b_kin_chi2 = fit.compute(metP4, leptonP4, jetP4s[0], jetP4s[1], jetP4s[2], jetP4s[3]);
     b_kin_JES = fit.min_->X()[0];
@@ -313,6 +314,8 @@ void AnalyzerHYTuple::Loop(const string modeStr, const string outFileName)
     const auto hadT = hadW12+sol_hbP4;
     b_kin_hadW12_pt = hadW12.Pt(); b_kin_hadW12_eta = hadW12.Eta(); b_kin_hadW12_phi = hadW12.Phi(); b_kin_hadW12_m = hadW12.M(); 
     b_kin_hadW23_pt = hadW23.Pt(); b_kin_hadW23_eta = hadW23.Eta(); b_kin_hadW23_phi = hadW23.Phi(); b_kin_hadW23_m = hadW23.M(); 
+    b_kin_hadW12_dR = sol_wj1P4.DeltaR(sol_wj2P4);
+    b_kin_hadW23_dR = sol_wj2P4.DeltaR(sol_hbP4);
     b_kin_hadT_pt = hadT.Pt(); b_kin_hadT_eta = hadT.Eta(); b_kin_hadT_phi = hadT.Phi(); b_kin_hadT_m = hadT.M(); 
 
     TLorentzVector cm_hb = sol_hbP4, cm_hj1 = sol_wj1P4, cm_hj2 = sol_wj2P4;
@@ -327,20 +330,20 @@ void AnalyzerHYTuple::Loop(const string modeStr, const string outFileName)
     b_kin_theta1 = cm_hb.Vect().Dot(cm_top.Vect());
     b_kin_theta2 = cm_hb.Vect().Cross(cm_hj1.Vect()).Dot(cm_hb.Vect().Cross(cm_top.Vect()));
 
-    b_kin_lepB_CSV = jets_CSV[bestIdxs[0]];
-    b_kin_hadJ1_CSV = jets_CSV[bestIdxs[1]];
-    b_kin_hadJ2_CSV = jets_CSV[bestIdxs[2]];
-    b_kin_hadB_CSV = jets_CSV[bestIdxs[3]];
+    b_kin_lepB_CSV = jets_bTag[bestIdxs[0]];
+    b_kin_hadJ1_CSV = jets_bTag[bestIdxs[1]];
+    b_kin_hadJ2_CSV = jets_bTag[bestIdxs[2]];
+    b_kin_hadB_CSV = jets_bTag[bestIdxs[3]];
 
-    b_kin_lepB_CvsB = jets_CvsB[bestIdxs[0]];
-    b_kin_hadJ1_CvsB = jets_CvsB[bestIdxs[1]];
-    b_kin_hadJ2_CvsB = jets_CvsB[bestIdxs[2]];
-    b_kin_hadB_CvsB = jets_CvsB[bestIdxs[3]];
+    b_kin_lepB_CvsB = 0;
+    b_kin_hadJ1_CvsB = 0;
+    b_kin_hadJ2_CvsB = 0;
+    b_kin_hadB_CvsB = 0;
 
-    b_kin_lepB_CvsL = jets_CvsL[bestIdxs[0]];
-    b_kin_hadJ1_CvsL = jets_CvsL[bestIdxs[1]];
-    b_kin_hadJ2_CvsL = jets_CvsL[bestIdxs[2]];
-    b_kin_hadB_CvsL = jets_CvsL[bestIdxs[3]];
+    b_kin_lepB_CvsL = 0;
+    b_kin_hadJ1_CvsL = 0;
+    b_kin_hadJ2_CvsL = 0;
+    b_kin_hadB_CvsL = 0;
 
     std::vector<size_t> addJetIdxs;
     for ( size_t j : jetIdxs ) {
@@ -361,23 +364,23 @@ void AnalyzerHYTuple::Loop(const string modeStr, const string outFileName)
     else {
       auto addJetIdxsByPt = addJetIdxs;
       std::sort(addJetIdxsByPt.begin(), addJetIdxsByPt.end(), [&](size_t a, size_t b) { return jets_pt[a] > jets_pt[b]; });
-      std::sort(addJetIdxs.begin(), addJetIdxs.end(), [&](size_t a, size_t b) { return jets_CSV[a] > jets_CSV[b]; });
+      std::sort(addJetIdxs.begin(), addJetIdxs.end(), [&](size_t a, size_t b) { return jets_bTag[a] > jets_bTag[b]; });
       const size_t jByPt1 = addJetIdxsByPt[0], jByPt2 = addJetIdxsByPt[1];
       const size_t jByCSV1 = addJetIdxs[0], jByCSV2 = addJetIdxs[1];
       TLorentzVector addJetByCSV1, addJetByCSV2, addJetByPt1, addJetByPt2;
-      addJetByCSV1.SetPtEtaPhiE(jets_pt[jByPt1], jets_eta[jByPt1], jets_phi[jByPt1], jets_e[jByPt1]);
-      addJetByCSV1.SetPtEtaPhiE(jets_pt[jByPt2], jets_eta[jByPt2], jets_phi[jByPt2], jets_e[jByPt2]);
-      addJetByPt1.SetPtEtaPhiE(jets_pt[jByCSV1], jets_eta[jByCSV1], jets_phi[jByCSV1], jets_e[jByCSV1]);
-      addJetByPt1.SetPtEtaPhiE(jets_pt[jByCSV2], jets_eta[jByCSV2], jets_phi[jByCSV2], jets_e[jByCSV2]);
+      addJetByCSV1.SetPtEtaPhiM(jets_pt[jByPt1], jets_eta[jByPt1], jets_phi[jByPt1], jets_m[jByPt1]);
+      addJetByCSV1.SetPtEtaPhiM(jets_pt[jByPt2], jets_eta[jByPt2], jets_phi[jByPt2], jets_m[jByPt2]);
+      addJetByPt1.SetPtEtaPhiM(jets_pt[jByCSV1], jets_eta[jByCSV1], jets_phi[jByCSV1], jets_m[jByCSV1]);
+      addJetByPt1.SetPtEtaPhiM(jets_pt[jByCSV2], jets_eta[jByCSV2], jets_phi[jByCSV2], jets_m[jByCSV2]);
 
       b_kin_addJetByPt1_pt = jets_pt[jByPt1];
       b_kin_addJetByPt2_pt = jets_pt[jByPt2];
       b_kin_addJetByCSV1_pt = jets_pt[jByCSV1];
       b_kin_addJetByCSV2_pt = jets_pt[jByCSV2];
-      b_kin_addJetByPt1_CSV = jets_CSV[jByPt1];
-      b_kin_addJetByPt2_CSV = jets_CSV[jByPt2];
-      b_kin_addJetByCSV1_CSV = jets_CSV[jByCSV1];
-      b_kin_addJetByCSV2_CSV = jets_CSV[jByCSV2];
+      b_kin_addJetByPt1_CSV = jets_bTag[jByPt1];
+      b_kin_addJetByPt2_CSV = jets_bTag[jByPt2];
+      b_kin_addJetByCSV1_CSV = jets_bTag[jByCSV1];
+      b_kin_addJetByCSV2_CSV = jets_bTag[jByCSV2];
       b_kin_addJetsByPt_dR = addJetByPt1.DeltaR(addJetByPt2);
       b_kin_addJetsByCSV_dR = addJetByCSV1.DeltaR(addJetByCSV2);
       b_kin_addJetsByPt_m = (addJetByPt1+addJetByPt2).M();
