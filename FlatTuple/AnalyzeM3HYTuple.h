@@ -163,7 +163,7 @@ public :
 #endif
 
 #ifdef AnalyzeM3HYTuple_cxx
-AnalyzeM3HYTuple::AnalyzeM3HYTuple(TTree *tree) : fChain(0) 
+AnalyzeM3HYTuple::AnalyzeM3HYTuple(TTree *tree) : fChain(0)
 {
 // if parameter tree is not specified (or zero), connect the file
 // used to generate this class and read the Tree.

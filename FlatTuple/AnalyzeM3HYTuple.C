@@ -63,6 +63,7 @@ void AnalyzeM3HYTuple::Loop(const string outFileName)
   float b_m3_hadB_pt, b_m3_hadB_eta, b_m3_hadB_phi, b_m3_hadB_m;
   float b_m3_hadW12_pt, b_m3_hadW12_eta, b_m3_hadW12_phi, b_m3_hadW12_m, b_m3_hadW12_dR;
   float b_m3_hadW23_pt, b_m3_hadW23_eta, b_m3_hadW23_phi, b_m3_hadW23_m, b_m3_hadW23_dR;
+  float b_m3_hadW13_pt, b_m3_hadW13_eta, b_m3_hadW13_phi, b_m3_hadW13_m, b_m3_hadW13_dR;
   float b_m3_hadT_pt, b_m3_hadT_eta, b_m3_hadT_phi, b_m3_hadT_m;
   float b_m3_theta1, b_m3_theta2;
   float b_m3_lepB_CSV, b_m3_hadB_CSV, b_m3_hadJ1_CSV, b_m3_hadJ2_CSV;
@@ -91,6 +92,7 @@ void AnalyzeM3HYTuple::Loop(const string outFileName)
   tree->Branch("m3_lepT_m", &b_m3_lepT_m, "m3_lepT_m/F");
   tree->Branch("m3_hadW12_m", &b_m3_hadW12_m, "m3_hadW12_m/F");
   tree->Branch("m3_hadW23_m", &b_m3_hadW23_m, "m3_hadW23_m/F");
+  tree->Branch("m3_hadW13_m", &b_m3_hadW13_m, "m3_hadW13_m/F");
   tree->Branch("m3_hadT_m", &b_m3_hadT_m, "m3_hadT_m/F");
 
   tree->Branch("m3_bjetcode", &b_m3_bjetcode, "m3_bjetcode/I"); // b-jet contribution "code". Format=[nbjetInLepT][nbjetInHadT]
@@ -124,6 +126,10 @@ void AnalyzeM3HYTuple::Loop(const string outFileName)
   tree->Branch("m3_hadW23_eta", &b_m3_hadW23_eta, "m3_hadW23_eta/F");
   tree->Branch("m3_hadW23_phi", &b_m3_hadW23_phi, "m3_hadW23_phi/F");
   tree->Branch("m3_hadW23_dR", &b_m3_hadW23_dR, "m3_hadW23_dR/F");
+  tree->Branch("m3_hadW13_pt", &b_m3_hadW13_pt, "m3_hadW13_pt/F");
+  tree->Branch("m3_hadW13_eta", &b_m3_hadW13_eta, "m3_hadW13_eta/F");
+  tree->Branch("m3_hadW13_phi", &b_m3_hadW13_phi, "m3_hadW13_phi/F");
+  tree->Branch("m3_hadW13_dR", &b_m3_hadW13_dR, "m3_hadW13_dR/F");
   tree->Branch("m3_hadT_pt", &b_m3_hadT_pt, "m3_hadT_pt/F");
   tree->Branch("m3_hadT_eta", &b_m3_hadT_eta, "m3_hadT_eta/F");
   tree->Branch("m3_hadT_phi", &b_m3_hadT_phi, "m3_hadT_phi/F");
@@ -252,24 +258,27 @@ void AnalyzeM3HYTuple::Loop(const string outFileName)
     hHW_dR->Fill( jetP4s[1].DeltaR(jetP4s[2]) );
     hHT_m->Fill( (jetP4s[1]+jetP4s[2]+jetP4s[3]).M() );
 
-    b_m3_lepB_pt = jetP4s[0].Pt(); b_m3_lepB_eta = jetP4s[0].Eta(); b_m3_lepB_phi = jetP4s[0].Phi(); b_m3_lepB_m = jetP4s[0].M(); 
-    b_m3_hadJ1_pt = jetP4s[1].Pt(); b_m3_hadJ1_eta = jetP4s[1].Eta(); b_m3_hadJ1_phi = jetP4s[1].Phi(); b_m3_hadJ1_m = jetP4s[1].M(); 
-    b_m3_hadJ2_pt = jetP4s[1].Pt(); b_m3_hadJ2_eta = jetP4s[1].Eta(); b_m3_hadJ2_phi = jetP4s[1].Phi(); b_m3_hadJ2_m = jetP4s[1].M(); 
-    b_m3_hadB_pt = jetP4s[2].Pt(); b_m3_hadB_eta = jetP4s[2].Eta(); b_m3_hadB_phi = jetP4s[2].Phi(); b_m3_hadB_m = jetP4s[2].M(); 
+    b_m3_lepB_pt = jetP4s[0].Pt(); b_m3_lepB_eta = jetP4s[0].Eta(); b_m3_lepB_phi = jetP4s[0].Phi(); b_m3_lepB_m = jetP4s[0].M();
+    b_m3_hadJ1_pt = jetP4s[1].Pt(); b_m3_hadJ1_eta = jetP4s[1].Eta(); b_m3_hadJ1_phi = jetP4s[1].Phi(); b_m3_hadJ1_m = jetP4s[1].M();
+    b_m3_hadJ2_pt = jetP4s[1].Pt(); b_m3_hadJ2_eta = jetP4s[1].Eta(); b_m3_hadJ2_phi = jetP4s[1].Phi(); b_m3_hadJ2_m = jetP4s[1].M();
+    b_m3_hadB_pt = jetP4s[2].Pt(); b_m3_hadB_eta = jetP4s[2].Eta(); b_m3_hadB_phi = jetP4s[2].Phi(); b_m3_hadB_m = jetP4s[2].M();
 
     const auto lepW = leptonP4+metP4;
     const auto lepT = lepW+jetP4s[0];
-    b_m3_lepW_pt = lepW.Pt(); b_m3_lepW_eta = lepW.Eta(); b_m3_lepW_phi = lepW.Phi(); b_m3_lepW_m = lepW.M(); 
-    b_m3_lepT_pt = lepT.Pt(); b_m3_lepT_eta = lepT.Eta(); b_m3_lepT_phi = lepT.Phi(); b_m3_lepT_m = lepT.M(); 
+    b_m3_lepW_pt = lepW.Pt(); b_m3_lepW_eta = lepW.Eta(); b_m3_lepW_phi = lepW.Phi(); b_m3_lepW_m = lepW.M();
+    b_m3_lepT_pt = lepT.Pt(); b_m3_lepT_eta = lepT.Eta(); b_m3_lepT_phi = lepT.Phi(); b_m3_lepT_m = lepT.M();
 
     const auto hadW12 = jetP4s[1]+jetP4s[2];
     const auto hadW23 = jetP4s[2]+jetP4s[3];
+    const auto hadW13 = jetP4s[1]+jetP4s[3];
     const auto hadT = hadW12+jetP4s[3];
-    b_m3_hadW12_pt = hadW12.Pt(); b_m3_hadW12_eta = hadW12.Eta(); b_m3_hadW12_phi = hadW12.Phi(); b_m3_hadW12_m = hadW12.M(); 
-    b_m3_hadW23_pt = hadW23.Pt(); b_m3_hadW23_eta = hadW23.Eta(); b_m3_hadW23_phi = hadW23.Phi(); b_m3_hadW23_m = hadW23.M(); 
+    b_m3_hadW12_pt = hadW12.Pt(); b_m3_hadW12_eta = hadW12.Eta(); b_m3_hadW12_phi = hadW12.Phi(); b_m3_hadW12_m = hadW12.M();
+    b_m3_hadW23_pt = hadW23.Pt(); b_m3_hadW23_eta = hadW23.Eta(); b_m3_hadW23_phi = hadW23.Phi(); b_m3_hadW23_m = hadW23.M();
+    b_m3_hadW13_pt = hadW13.Pt(); b_m3_hadW13_eta = hadW13.Eta(); b_m3_hadW13_phi = hadW13.Phi(); b_m3_hadW13_m = hadW13.M();
     b_m3_hadW12_dR = jetP4s[1].DeltaR(jetP4s[2]);
     b_m3_hadW23_dR = jetP4s[2].DeltaR(jetP4s[3]);
-    b_m3_hadT_pt = hadT.Pt(); b_m3_hadT_eta = hadT.Eta(); b_m3_hadT_phi = hadT.Phi(); b_m3_hadT_m = hadT.M(); 
+    b_m3_hadW13_dR = jetP4s[1].DeltaR(jetP4s[3]);
+    b_m3_hadT_pt = hadT.Pt(); b_m3_hadT_eta = hadT.Eta(); b_m3_hadT_phi = hadT.Phi(); b_m3_hadT_m = hadT.M();
 
     TLorentzVector cm_hb = jetP4s[3], cm_hj1 = jetP4s[1], cm_hj2 = jetP4s[2];
     TLorentzVector cm_top = cm_hb+cm_hj1+cm_hj2;
