@@ -262,8 +262,8 @@ void AnalyzeM3Delphes::Loop(const string outFileName)
 
     b_kin_lepB_pt = jetP4s[0].Pt(); b_kin_lepB_eta = jetP4s[0].Eta(); b_kin_lepB_phi = jetP4s[0].Phi(); b_kin_lepB_m = jetP4s[0].M();
     b_kin_hadJ1_pt = jetP4s[1].Pt(); b_kin_hadJ1_eta = jetP4s[1].Eta(); b_kin_hadJ1_phi = jetP4s[1].Phi(); b_kin_hadJ1_m = jetP4s[1].M();
-    b_kin_hadJ2_pt = jetP4s[1].Pt(); b_kin_hadJ2_eta = jetP4s[1].Eta(); b_kin_hadJ2_phi = jetP4s[1].Phi(); b_kin_hadJ2_m = jetP4s[1].M();
-    b_kin_hadB_pt = jetP4s[2].Pt(); b_kin_hadB_eta = jetP4s[2].Eta(); b_kin_hadB_phi = jetP4s[2].Phi(); b_kin_hadB_m = jetP4s[2].M();
+    b_kin_hadJ2_pt = jetP4s[2].Pt(); b_kin_hadJ2_eta = jetP4s[2].Eta(); b_kin_hadJ2_phi = jetP4s[2].Phi(); b_kin_hadJ2_m = jetP4s[2].M();
+    b_kin_hadB_pt = jetP4s[3].Pt(); b_kin_hadB_eta = jetP4s[3].Eta(); b_kin_hadB_phi = jetP4s[3].Phi(); b_kin_hadB_m = jetP4s[3].M();
 
     const auto lepW = leptonP4+metP4;
     const auto lepT = lepW+jetP4s[0];
