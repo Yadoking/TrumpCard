@@ -3,9 +3,6 @@
 R__LOAD_LIBRARY(AnalyzeM3HYTuple.C+)
 R__LOAD_LIBRARY(AnalyzeM3Delphes.C+)
 
-const string sample = "FCNC";
-//const string sample = "ttbb";
-
 void run_CMSM3();
 void run_DelphesM3();
 
@@ -17,31 +14,33 @@ void run_M3()
 
 void run_CMSM3()
 {
-  TChain chain("ttbbLepJets/tree");
-  if ( sample == "FCNC" ) {
-    chain.Add("/home/minerva1993/fcnc/ntuple_jw/v2/TT_AntitopLeptonicDecay_TH_1L3B_Eta_Hct.root");
-    chain.Add("/home/minerva1993/fcnc/ntuple_jw/v2/TT_TopLeptonicDecay_TH_1L3B_Eta_Hct.root");
-    ///home/minerva1993/fcnc/ntuple_jw/v2/TT_AntitopLeptonicDecay_TH_1L3B_Eta_Hut.root
-    ///home/minerva1993/fcnc/ntuple_jw/v2/TT_TopLeptonicDecay_TH_1L3B_Eta_Hut.root
-  }
-  else if ( sample == "ttbb" ) {
-    chain.Add("/home/minerva1993/fcnc/ntuple_jw/v2/TT_powheg_ttbb.root");
-  }
-  AnalyzeM3HYTuple t(&chain);
+  TChain chainFCNC("ttbbLepJets/tree");
+  chainFCNC.Add("/home/minerva1993/fcnc/ntuple_jw/v2/TT_AntitopLeptonicDecay_TH_1L3B_Eta_Hct.root");
+  chainFCNC.Add("/home/minerva1993/fcnc/ntuple_jw/v2/TT_TopLeptonicDecay_TH_1L3B_Eta_Hct.root");
+  ///home/minerva1993/fcnc/ntuple_jw/v2/TT_AntitopLeptonicDecay_TH_1L3B_Eta_Hut.root
+  ///home/minerva1993/fcnc/ntuple_jw/v2/TT_TopLeptonicDecay_TH_1L3B_Eta_Hut.root
 
-  t.Loop(Form("m3/cmsTuple_%s.root", sample.c_str()));
+  TChain chainTTBB("ttbbLepJets/tree");
+  chainTTBB.Add("/home/minerva1993/fcnc/ntuple_jw/v2/TT_powheg_ttbb.root");
+
+  AnalyzeM3HYTuple tFCNC(&chainFCNC);
+  AnalyzeM3HYTuple tTTBB(&chainTTBB);
+
+  tFCNC.Loop("m3/cmsTuple_FCNC.root");
+  tTTBB.Loop("m3/cmsTuple_ttbb.root");
 }
 
 void run_DelphesM3()
 {
-  TChain chain("tree");
-  if ( sample == "FCNC" ) {
-    chain.Add("../Delphes2Flat/ntuple_tch.root");
-  }
-  else if ( sample == "ttbb" ) {
-    chain.Add("../Delphes2Flat/ntuple_ttbb.root");
-  }
-  AnalyzeM3Delphes t(&chain);
+  TChain chainFCNC("tree");
+  chainFCNC.Add("../Delphes2Flat/ntuple_tch.root");
 
-  t.Loop(Form("m3/delphes_%s.root", sample.c_str()));
+  TChain chainTTBB("tree");
+  chainTTBB.Add("../Delphes2Flat/ntuple_ttbb.root");
+
+  AnalyzeM3Delphes tFCNC(&chainFCNC);
+  AnalyzeM3Delphes tTTBB(&chainTTBB);
+
+  tFCNC.Loop("m3/delphes_FCNC.root");
+  tTTBB.Loop("m3/delphes_ttbb.root");
 }
