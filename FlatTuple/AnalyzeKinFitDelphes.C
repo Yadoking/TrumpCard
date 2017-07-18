@@ -324,7 +324,7 @@ void AnalyzeKinFitDelphes::Loop(const string modeStr, const string outFileName)
     b_kin_hadW13_pt = hadW13.Pt(); b_kin_hadW13_eta = hadW13.Eta(); b_kin_hadW13_phi = hadW13.Phi(); b_kin_hadW13_m = hadW13.M();
     b_kin_hadW12_dR = sol_wj1P4.DeltaR(sol_wj2P4);
     b_kin_hadW23_dR = sol_wj2P4.DeltaR(sol_hbP4);
-    b_kin_hadW13_dR = sol_wj2P4.DeltaR(sol_hbP4);
+    b_kin_hadW13_dR = sol_wj1P4.DeltaR(sol_hbP4);
     b_kin_hadT_pt = hadT.Pt(); b_kin_hadT_eta = hadT.Eta(); b_kin_hadT_phi = hadT.Phi(); b_kin_hadT_m = hadT.M();
 
     TLorentzVector cm_hb = sol_hbP4, cm_hj1 = sol_wj1P4, cm_hj2 = sol_wj2P4;
