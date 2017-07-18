@@ -1,6 +1,6 @@
 #include "AnalyzeKinFitHYTuple.h"
 #include "AnalyzeKinFitDelphes.h"
-R__LOAD_LIBRARY(TTLJKinFit.C+)
+//R__LOAD_LIBRARY(TTLJKinFit.C+)
 R__LOAD_LIBRARY(AnalyzeKinFitHYTuple.C+)
 R__LOAD_LIBRARY(AnalyzeKinFitDelphes.C+)
 
@@ -14,8 +14,8 @@ void run_DelphesKinFit();
 
 void run_KinFit()
 {
-  //run_CMSKinFit();
-  run_DelphesKinFit();
+  run_CMSKinFit();
+  //run_DelphesKinFit();
 }
 
 void run_CMSKinFit()
@@ -32,7 +32,7 @@ void run_CMSKinFit()
   }
   AnalyzeKinFitHYTuple t(&chain);
 
-  t.Loop(mode, Form("cmsTuple_%s.root", sample.c_str())); // mode set to FCNC, require 3 b jets
+  t.Loop(mode, Form("kin/cmsTuple_%s.root", sample.c_str())); // mode set to FCNC, require 3 b jets
 }
 
 void run_DelphesKinFit()
@@ -46,5 +46,5 @@ void run_DelphesKinFit()
   }
   AnalyzeKinFitDelphes t(&chain);
 
-  t.Loop(mode, Form("delphes_%s.root", sample.c_str())); // mode set to FCNC, require 3 b jets
+  t.Loop(mode, Form("kin/delphes_%s.root", sample.c_str())); // mode set to FCNC, require 3 b jets
 }

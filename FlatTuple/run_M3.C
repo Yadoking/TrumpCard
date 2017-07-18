@@ -29,7 +29,7 @@ void run_CMSM3()
   }
   AnalyzeM3HYTuple t(&chain);
 
-  t.Loop(Form("cmsTuple_%s.root", sample.c_str()));
+  t.Loop(Form("m3/cmsTuple_%s.root", sample.c_str()));
 }
 
 void run_DelphesM3()
@@ -43,5 +43,5 @@ void run_DelphesM3()
   }
   AnalyzeM3Delphes t(&chain);
 
-  t.Loop(Form("delphes_%s.root", sample.c_str()));
+  t.Loop(Form("m3/delphes_%s.root", sample.c_str()));
 }
