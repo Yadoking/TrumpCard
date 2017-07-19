@@ -25,7 +25,7 @@ from ROOT import *
 
 TMVA.Tools.Instance()
 
-fout = TFile("mva.root", "recreate")
+fout = TFile("mva_%s_%s.root" % (sampleType0, suffix), "recreate")
 
 factory = TMVA.Factory("TMVAClassification", fout,
                        "!V:!Silent:Color:DrawProgressBar:Transformations=I;D;P;G;D:AnalysisType=Classification" )
@@ -168,5 +168,5 @@ factory.TestAllMethods()
 factory.EvaluateAllMethods()
 fout.Close()
 
-TMVA.TMVAGui("mva.root")
+TMVA.TMVAGui("mva_%s_%s.root" % (sampleType0, suffix))
 
