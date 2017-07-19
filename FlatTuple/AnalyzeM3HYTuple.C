@@ -40,6 +40,7 @@ void AnalyzeM3HYTuple::Loop(const string modeStr, const string outFileName)
   Mode mode = (modeStr == "FCNC") ? Mode::FCNC : Mode::TT;
   enum class AlgoType { M3=0, dR };
   AlgoType algoType = AlgoType::M3;
+  //AlgoType algoType = AlgoType::dR;
 
   TFile* fout = new TFile(outFileName.c_str(), "recreate");
   TTree* tree = new TTree("tree", "tree");
@@ -224,6 +225,21 @@ void AnalyzeM3HYTuple::Loop(const string modeStr, const string outFileName)
         for ( auto ii2 = ii1+1; ii2 != jetIdxs.end(); ++ii2 ) {
           jetP4s[2].SetPtEtaPhiE(jets_pt[*ii2], jets_eta[*ii2], jets_phi[*ii2], jets_e[*ii2]);
           for ( auto ii3 = ii2+1; ii3 != jetIdxs.end(); ++ii3 ) {
+            int nbjetsInHadT = 0;
+            if ( jets_CSV[*ii1] > CSVM ) ++nbjetsInHadT;
+            if ( jets_CSV[*ii2] > CSVM ) ++nbjetsInHadT;
+            if ( jets_CSV[*ii3] > CSVM ) ++nbjetsInHadT;
+            if ( mode == Mode::TT ) {
+              // SM ttbar mode: require at least one b jet used
+              if ( b_bjets_n >= 2 and nbjetsInHadT < 1 ) continue;
+            }
+            else if ( mode == Mode::FCNC ) {
+              // FCNC mode: require b jets in the trijet system, t->Hc / H->bb
+              // can be used for the charged Higgs case as well, t->H+b / H+ -> cb
+              if ( b_bjets_n >= 3 and nbjetsInHadT < 2 ) continue; // at least two b jets in hadronic side
+              else if ( b_bjets_n == 2 and nbjetsInHadT < 1 ) continue; // at least one b jet in hadronic side
+            }
+
             jetP4s[3].SetPtEtaPhiE(jets_pt[*ii3], jets_eta[*ii3], jets_phi[*ii3], jets_e[*ii3]);
 
             const double m3Pt = (jetP4s[1]+jetP4s[2]+jetP4s[3]).Pt();
@@ -240,6 +256,16 @@ void AnalyzeM3HYTuple::Loop(const string modeStr, const string outFileName)
       for ( auto ii1 = jetIdxs.begin(); ii1 != jetIdxs.end(); ++ii1 ) {
         jetP4s[1].SetPtEtaPhiE(jets_pt[*ii1], jets_eta[*ii1], jets_phi[*ii1], jets_e[*ii1]);
         for ( auto ii2 = ii1+1; ii2 != jetIdxs.end(); ++ii2 ) {
+          int nbjetsInHadW = 0;
+          if ( jets_CSV[*ii1] > CSVM ) ++nbjetsInHadW;
+          if ( jets_CSV[*ii2] > CSVM ) ++nbjetsInHadW;
+          if ( mode == Mode::FCNC ) {
+            // FCNC mode: require b jets in the trijet system, t->Hc / H->bb
+            // can be used for the charged Higgs case as well, t->H+b / H+ -> cb
+            if ( b_bjets_n >= 3 and nbjetsInHadW < 2 ) continue; // at least two b jets in hadronic side
+            else if ( b_bjets_n == 2 and nbjetsInHadW < 1 ) continue; // at least one b jet in hadronic side
+          }
+
           jetP4s[2].SetPtEtaPhiE(jets_pt[*ii2], jets_eta[*ii2], jets_phi[*ii2], jets_e[*ii2]);
           const double dR = jetP4s[1].DeltaR(jetP4s[2]);
           if ( dR < minDR ) {
