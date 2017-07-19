@@ -191,10 +191,10 @@ void AnalyzeM3Delphes::Loop(const string modeStr, const string outFileName)
 
     TLorentzVector leptonP4;
     if ( muons_n >= 1 and muons_pt[0] > 30 and std::abs(muons_eta[0]) < 2.1 ) {
-      leptonP4.SetPtEtaPhiM(muons_pt[0], muons_eta[0], muons_dphi[0], muons_m[0]);
+      leptonP4.SetPtEtaPhiM(muons_pt[0], muons_eta[0], muons_phi[0], muons_m[0]);
     }
     else if ( electrons_n >= 1 and electrons_pt[0] > 30 and std::abs(electrons_eta[0]) < 2.1 ) {
-      leptonP4.SetPtEtaPhiM(electrons_pt[0], electrons_eta[0], electrons_dphi[0], electrons_m[0]);
+      leptonP4.SetPtEtaPhiM(electrons_pt[0], electrons_eta[0], electrons_phi[0], electrons_m[0]);
     }
     else continue;
 
@@ -203,7 +203,7 @@ void AnalyzeM3Delphes::Loop(const string modeStr, const string outFileName)
     b_lepton_phi = leptonP4.Phi();
 
     TLorentzVector metP4;
-    metP4.SetPtEtaPhiM(met_pt, 0, met_dphi, 0);
+    metP4.SetPtEtaPhiM(met_pt, 0, met_phi, 0);
 
     std::vector<size_t> jetIdxs;
     b_bjets_n = 0;
@@ -220,11 +220,11 @@ void AnalyzeM3Delphes::Loop(const string modeStr, const string outFileName)
     if ( algoType == AlgoType::M3 ) {
       double maxM3Pt = 0;
       for ( auto ii1 = jetIdxs.begin(); ii1 != jetIdxs.end(); ++ii1 ) {
-        jetP4s[1].SetPtEtaPhiM(jets_pt[*ii1], jets_eta[*ii1], jets_dphi[*ii1], jets_m[*ii1]);
+        jetP4s[1].SetPtEtaPhiM(jets_pt[*ii1], jets_eta[*ii1], jets_phi[*ii1], jets_m[*ii1]);
         for ( auto ii2 = ii1+1; ii2 != jetIdxs.end(); ++ii2 ) {
-          jetP4s[2].SetPtEtaPhiM(jets_pt[*ii2], jets_eta[*ii2], jets_dphi[*ii2], jets_m[*ii2]);
+          jetP4s[2].SetPtEtaPhiM(jets_pt[*ii2], jets_eta[*ii2], jets_phi[*ii2], jets_m[*ii2]);
           for ( auto ii3 = ii2+1; ii3 != jetIdxs.end(); ++ii3 ) {
-            jetP4s[3].SetPtEtaPhiM(jets_pt[*ii3], jets_eta[*ii3], jets_dphi[*ii3], jets_m[*ii3]);
+            jetP4s[3].SetPtEtaPhiM(jets_pt[*ii3], jets_eta[*ii3], jets_phi[*ii3], jets_m[*ii3]);
 
             const double m3Pt = (jetP4s[1]+jetP4s[2]+jetP4s[3]).Pt();
             if ( m3Pt > maxM3Pt ) {
@@ -238,9 +238,9 @@ void AnalyzeM3Delphes::Loop(const string modeStr, const string outFileName)
     else if ( algoType == AlgoType::dR ) {
       double minDR = 1e9;
       for ( auto ii1 = jetIdxs.begin(); ii1 != jetIdxs.end(); ++ii1 ) {
-        jetP4s[1].SetPtEtaPhiM(jets_pt[*ii1], jets_eta[*ii1], jets_dphi[*ii1], jets_m[*ii1]);
+        jetP4s[1].SetPtEtaPhiM(jets_pt[*ii1], jets_eta[*ii1], jets_phi[*ii1], jets_m[*ii1]);
         for ( auto ii2 = ii1+1; ii2 != jetIdxs.end(); ++ii2 ) {
-          jetP4s[2].SetPtEtaPhiM(jets_pt[*ii2], jets_eta[*ii2], jets_dphi[*ii2], jets_m[*ii2]);
+          jetP4s[2].SetPtEtaPhiM(jets_pt[*ii2], jets_eta[*ii2], jets_phi[*ii2], jets_m[*ii2]);
           const double dR = jetP4s[1].DeltaR(jetP4s[2]);
           if ( dR < minDR ) {
             bestIdxs = {jets_n, *ii1, *ii2, jets_n};
@@ -250,13 +250,13 @@ void AnalyzeM3Delphes::Loop(const string modeStr, const string outFileName)
       }
       if ( !bestIdxs.empty() ) {
         const auto i1 = bestIdxs[1], i2 = bestIdxs[2];
-        jetP4s[1].SetPtEtaPhiM(jets_pt[i1], jets_eta[i1], jets_dphi[i1], jets_m[i1]);
-        jetP4s[2].SetPtEtaPhiM(jets_pt[i2], jets_eta[i2], jets_dphi[i2], jets_m[i2]);
+        jetP4s[1].SetPtEtaPhiM(jets_pt[i1], jets_eta[i1], jets_phi[i1], jets_m[i1]);
+        jetP4s[2].SetPtEtaPhiM(jets_pt[i2], jets_eta[i2], jets_phi[i2], jets_m[i2]);
         const auto wP4 = jetP4s[1]+jetP4s[2];
         double minDR2 = 1e9;
         for ( auto i3 : jetIdxs ) {
           if ( i3 == i1 or i3 == i2 ) continue;
-          jetP4s[3].SetPtEtaPhiM(jets_pt[i3], jets_eta[i3], jets_dphi[i3], jets_m[i3]);
+          jetP4s[3].SetPtEtaPhiM(jets_pt[i3], jets_eta[i3], jets_phi[i3], jets_m[i3]);
 
           const double dR = jetP4s[3].DeltaR(wP4);
           if ( dR < minDR2 ) {
@@ -291,7 +291,7 @@ void AnalyzeM3Delphes::Loop(const string modeStr, const string outFileName)
     b_kin_bjetcode = 0;
     for ( size_t i=0; i<4; ++i ) {
       const size_t j = bestIdxs[i];
-      jetP4s[i].SetPtEtaPhiM(jets_pt[j], jets_eta[j], jets_dphi[j], jets_m[j]);
+      jetP4s[i].SetPtEtaPhiM(jets_pt[j], jets_eta[j], jets_phi[j], jets_m[j]);
       if ( jets_bTag[j] > CSVM ) {
         if ( i == 0 ) b_kin_bjetcode = 10;
         else b_kin_bjetcode += 1;
@@ -376,10 +376,10 @@ void AnalyzeM3Delphes::Loop(const string modeStr, const string outFileName)
       const size_t jByPt1 = addJetIdxsByPt[0], jByPt2 = addJetIdxsByPt[1];
       const size_t jByCSV1 = addJetIdxs[0], jByCSV2 = addJetIdxs[1];
       TLorentzVector addJetByCSV1, addJetByCSV2, addJetByPt1, addJetByPt2;
-      addJetByCSV1.SetPtEtaPhiM(jets_pt[jByPt1], jets_eta[jByPt1], jets_dphi[jByPt1], jets_m[jByPt1]);
-      addJetByCSV1.SetPtEtaPhiM(jets_pt[jByPt2], jets_eta[jByPt2], jets_dphi[jByPt2], jets_m[jByPt2]);
-      addJetByPt1.SetPtEtaPhiM(jets_pt[jByCSV1], jets_eta[jByCSV1], jets_dphi[jByCSV1], jets_m[jByCSV1]);
-      addJetByPt1.SetPtEtaPhiM(jets_pt[jByCSV2], jets_eta[jByCSV2], jets_dphi[jByCSV2], jets_m[jByCSV2]);
+      addJetByCSV1.SetPtEtaPhiM(jets_pt[jByPt1], jets_eta[jByPt1], jets_phi[jByPt1], jets_m[jByPt1]);
+      addJetByCSV1.SetPtEtaPhiM(jets_pt[jByPt2], jets_eta[jByPt2], jets_phi[jByPt2], jets_m[jByPt2]);
+      addJetByPt1.SetPtEtaPhiM(jets_pt[jByCSV1], jets_eta[jByCSV1], jets_phi[jByCSV1], jets_m[jByCSV1]);
+      addJetByPt1.SetPtEtaPhiM(jets_pt[jByCSV2], jets_eta[jByCSV2], jets_phi[jByCSV2], jets_m[jByCSV2]);
 
       b_kin_addJetByPt1_pt = jets_pt[jByPt1];
       b_kin_addJetByPt2_pt = jets_pt[jByPt2];
