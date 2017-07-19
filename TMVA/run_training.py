@@ -1,14 +1,26 @@
 #!/usr/bin/env python
-from ROOT import *
+import sys, os
 
-#suffix = "kin"
-suffix = "m3"
-sampleType = "cmsTuple"
-#sampleType = "delphes"
+if len(sys.argv) < 3:
+    sys.exit(1)
+
+sampleType, suffix = sys.argv[1], sys.argv[2]
+if suffix not in ["kin", "m3", "deltaR"]:
+    print "choose among kin, m3 or deltaR"
+    sys.exit(1)
+if sampleType not in ["cmsTuple", "cmsTuple.withBtag", "delphes"]:
+    print "choose sampleType in cmsTuple, cmsTuple.withBtag, delphes"
+    sys.exit(1)
+doBtag = False
+if sampleType == "cmsTuple.withBtag":
+    sampleType = "cmsTuple"
+    doBtag = True
+
+from ROOT import *
 
 TMVA.Tools.Instance()
 
-fout = TFile("mva_%s_%s.root" % (sampleType, suffix), "recreate")
+fout = TFile("mva.root", "recreate")
 
 factory = TMVA.Factory("TMVAClassification", fout,
                        "!V:!Silent:Color:DrawProgressBar:Transformations=I;D;P;G;D:AnalysisType=Classification" )
@@ -16,48 +28,30 @@ factory = TMVA.Factory("TMVAClassification", fout,
 loader = TMVA.DataLoader("dataset")
 loader.AddVariable("jets_n", "Jet multiplicity", "", "I")
 loader.AddVariable("bjets_n", "B-jet multiplicity", "", "I")
-#loader.AddVariable("kin_chi2", "Fit Chi2", "", "F")
-loader.AddVariable("kin_lepW_m", "Leptonic W mass", "GeV", "F")
-loader.AddVariable("kin_lepT_m", "Leptonic T mass", "GeV", "F")
-loader.AddVariable("kin_hadT_m", "Hadronic T mass", "GeV", "F")
-loader.AddVariable("kin_hadW12_m", "W12 mass", "GeV", "F")
-loader.AddVariable("kin_hadW23_m", "W23 mass", "GeV", "F")
-loader.AddVariable("kin_hadW13_m", "W13 mass", "GeV", "F")
-loader.AddVariable("kin_hadW12_dR", "W12 deltaR", "", "F")
-loader.AddVariable("kin_hadW23_dR", "W23 deltaR", "", "F")
-loader.AddVariable("kin_hadW13_dR", "W13 deltaR", "", "F")
-if True and sampleType == "cmsTuple":
-    loader.AddVariable("kin_lepB_CSV:=max(0,kin_lepB_CSV)", "lepB CSV", "", "F")
-    loader.AddVariable("kin_hadB_CSV:=max(0,kin_hadB_CSV)", "hadB CSV", "", "F")
-    loader.AddVariable("kin_hadJ1_CSV:=max(0,kin_hadJ1_CSV)", "hadJ1 CSV", "", "F") # F for the CMS Tree
-    loader.AddVariable("kin_hadJ2_CSV:=max(0,kin_hadJ1_CSV)", "hadJ2 CSV", "", "F") # F for the CMS Tree
-    loader.AddVariable("kin_lepB_CvsB", "Leptonic B CvsB", "", "F")
-    loader.AddVariable("kin_hadB_CvsB", "Hadronic B CvsB", "", "F")
-    loader.AddVariable("kin_hadJ1_CvsB", "Leptonic J1 CvsB", "", "F")
-    loader.AddVariable("kin_hadJ2_CvsB", "Leptonic J2 CvsB", "", "F")
-    loader.AddVariable("kin_lepB_CvsL", "Leptonic B CvsL", "", "F")
-    loader.AddVariable("kin_hadB_CvsL", "Hadronic B CvsL", "", "F")
-    loader.AddVariable("kin_hadJ1_CvsL", "Hadronic J1 CvsL", "", "F")
-    loader.AddVariable("kin_hadJ2_CvsL", "Hadronic J2 CvsL", "", "F")
 loader.AddVariable("kin_nbjetInHad:=kin_bjetcode%10", "B-jet multiplicity in the hadronic top", "", "I")
 loader.AddVariable("kin_theta1", "Theta1", "", "F")
 loader.AddVariable("kin_theta2", "Theta2", "", "F")
-
-for name in ["lepB", "lepT", "hadB", "hadJ1", "hadJ2", "hadW12", "hadW23", "hadW13"]:
-    loader.AddVariable("kin_%s_pt" % name, "%s pt" % name, "GeV", "F")
-for name in ["lepB", "hadB", "hadJ1", "hadJ2"]:
+#loader.AddVariable("kin_chi2", "Fit Chi2", "", "F")
+for name in ["lepT", "lepB", "lepW", "hadT", "hadJ1", "hadJ2", "hadB"]:
     loader.AddVariable("kin_%s_m" % name, "%s mass" % name, "GeV", "F")
+    loader.AddVariable("kin_%s_pt" % name, "%s pt" % name, "GeV", "F")
+    loader.AddVariable("kin_%s_eta" % name, "%s eta" % name, "", "F")
+for name in ["hadW12", "hadW23", "hadW13"]:
+    loader.AddVariable("kin_%s_m" % name, "%s mass" % name, "GeV", "F")
+    loader.AddVariable("kin_%s_pt" % name, "%s pt" % name, "GeV", "F")
+    loader.AddVariable("kin_%s_dR" % name, "%s deltaR" % name, "", "F")
+if doBtag and sampleType == "cmsTuple":
+    for name in ["lepB", "hadJ1", "hadJ2", "hadB"]:
+        loader.AddVariable("kin_%s_CSV:=max(0,kin_%s_CSV)" % (name, name), "%s CSV" % name, "", "F")
+        loader.AddVariable("kin_%s_CvsB" % name, "%s CvsB" % name, "", "F")
+        loader.AddVariable("kin_%s_CvsL" % name, "%s CvsL" % name, "", "F")
 
 #loader.AddSpectator("kin_bjetcode", "event category by nbjet in the fit")
 loader.AddSpectator("vertex_n", "nVertex")
 
 ## Load input files
-if sampleType == "cmsTuple":
-    fsig = TFile("../FlatTuple/%s/cmsTuple_FCNC.root" % suffix)
-    fbkg = TFile("../FlatTuple/%s/cmsTuple_ttbb.root" % suffix)
-else:
-    fsig = TFile("../FlatTuple/%s/delphes_FCNC.root" % suffix)
-    fbkg = TFile("../FlatTuple/%s/delphes_ttbb.root" % suffix)
+fsig = TFile("/home/jhgoh/work/Delphes/TrumpCard/FlatTuple/%s/%s_FCNC.root" % (suffix, sampleType))
+fbkg = TFile("/home/jhgoh/work/Delphes/TrumpCard/FlatTuple/%s/%s_ttbb.root" % (suffix, sampleType))
 tsig = fsig.Get("tree")
 tbkg = fbkg.Get("tree")
 
@@ -164,5 +158,5 @@ factory.TestAllMethods()
 factory.EvaluateAllMethods()
 fout.Close()
 
-#TMVA.TMVAGui("mva_%s.root" % suffix)
+#TMVA.TMVAGui("mva.root")
 
