@@ -11,6 +11,7 @@
 #include <TROOT.h>
 #include <TChain.h>
 #include <TFile.h>
+#include "TMath.h"
 
 // Header file for the classes stored in the TTree if any.
 
@@ -84,6 +85,13 @@ public :
    virtual void     Loop(const std::string modeStr, const std::string outFileName);
    virtual Bool_t   Notify();
    virtual void     Show(Long64_t entry = -1);
+
+   void rotate(float& phi, const float refPhi) {
+     phi -= refPhi;
+     const int n2Pi = floor(phi/2/TMath::Pi());
+     phi -= n2Pi*(2*TMath::Pi());
+     if ( phi > TMath::Pi() ) phi -= 2*TMath::Pi();
+   }
 };
 
 #endif

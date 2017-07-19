@@ -39,7 +39,7 @@ void AnalyzeM3HYTuple::Loop(const string modeStr, const string outFileName)
   enum class Mode { TT=0, FCNC };
   Mode mode = (modeStr == "FCNC") ? Mode::FCNC : Mode::TT;
   enum class AlgoType { M3=0, dR };
-  AlgoType algoType = Mode::M3;
+  AlgoType algoType = AlgoType::M3;
 
   TFile* fout = new TFile(outFileName.c_str(), "recreate");
   TTree* tree = new TTree("tree", "tree");
@@ -57,18 +57,18 @@ void AnalyzeM3HYTuple::Loop(const string modeStr, const string outFileName)
   int b_jets_n, b_bjets_n;
   float b_weight_gen;
   float b_lepton_pt, b_lepton_eta, b_lepton_phi;
-  float b_met_pt, b_met_phi;
+  float b_met_pt, b_met_dphi;
   int b_kin_bjetcode;
-  float b_kin_lepB_pt, b_kin_lepB_eta, b_kin_lepB_phi, b_kin_lepB_m;
-  float b_kin_lepW_pt, b_kin_lepW_eta, b_kin_lepW_phi, b_kin_lepW_m;
-  float b_kin_lepT_pt, b_kin_lepT_eta, b_kin_lepT_phi, b_kin_lepT_m;
-  float b_kin_hadJ1_pt, b_kin_hadJ1_eta, b_kin_hadJ1_phi, b_kin_hadJ1_m;
-  float b_kin_hadJ2_pt, b_kin_hadJ2_eta, b_kin_hadJ2_phi, b_kin_hadJ2_m;
-  float b_kin_hadB_pt, b_kin_hadB_eta, b_kin_hadB_phi, b_kin_hadB_m;
-  float b_kin_hadW12_pt, b_kin_hadW12_eta, b_kin_hadW12_phi, b_kin_hadW12_m, b_kin_hadW12_dR;
-  float b_kin_hadW23_pt, b_kin_hadW23_eta, b_kin_hadW23_phi, b_kin_hadW23_m, b_kin_hadW23_dR;
-  float b_kin_hadW13_pt, b_kin_hadW13_eta, b_kin_hadW13_phi, b_kin_hadW13_m, b_kin_hadW13_dR;
-  float b_kin_hadT_pt, b_kin_hadT_eta, b_kin_hadT_phi, b_kin_hadT_m;
+  float b_kin_lepB_pt, b_kin_lepB_eta, b_kin_lepB_dphi, b_kin_lepB_m;
+  float b_kin_lepW_pt, b_kin_lepW_eta, b_kin_lepW_dphi, b_kin_lepW_m;
+  float b_kin_lepT_pt, b_kin_lepT_eta, b_kin_lepT_dphi, b_kin_lepT_m;
+  float b_kin_hadJ1_pt, b_kin_hadJ1_eta, b_kin_hadJ1_dphi, b_kin_hadJ1_m;
+  float b_kin_hadJ2_pt, b_kin_hadJ2_eta, b_kin_hadJ2_dphi, b_kin_hadJ2_m;
+  float b_kin_hadB_pt, b_kin_hadB_eta, b_kin_hadB_dphi, b_kin_hadB_m;
+  float b_kin_hadW12_pt, b_kin_hadW12_eta, b_kin_hadW12_dphi, b_kin_hadW12_m, b_kin_hadW12_dR;
+  float b_kin_hadW23_pt, b_kin_hadW23_eta, b_kin_hadW23_dphi, b_kin_hadW23_m, b_kin_hadW23_dR;
+  float b_kin_hadW13_pt, b_kin_hadW13_eta, b_kin_hadW13_dphi, b_kin_hadW13_m, b_kin_hadW13_dR;
+  float b_kin_hadT_pt, b_kin_hadT_eta, b_kin_hadT_dphi, b_kin_hadT_m;
   float b_kin_theta1, b_kin_theta2;
   float b_kin_lepB_CSV, b_kin_hadB_CSV, b_kin_hadJ1_CSV, b_kin_hadJ2_CSV;
   float b_kin_lepB_CvsB, b_kin_hadB_CvsB, b_kin_hadJ1_CvsB, b_kin_hadJ2_CvsB;
@@ -88,7 +88,7 @@ void AnalyzeM3HYTuple::Loop(const string modeStr, const string outFileName)
   tree->Branch("lepton_eta", &b_lepton_eta, "lepton_eta/F");
   tree->Branch("lepton_phi", &b_lepton_phi, "lepton_phi/F");
   tree->Branch("met_pt", &b_met_pt, "met_pt/F");
-  tree->Branch("met_phi", &b_met_phi, "met_phi/F");
+  tree->Branch("met_dphi", &b_met_dphi, "met_dphi/F");
 
   tree->Branch("jets_n", &b_jets_n, "jets_n/I");
   tree->Branch("bjets_n", &b_bjets_n, "bjets_n/I");
@@ -102,41 +102,41 @@ void AnalyzeM3HYTuple::Loop(const string modeStr, const string outFileName)
   tree->Branch("kin_bjetcode", &b_kin_bjetcode, "kin_bjetcode/I"); // b-jet contribution "code". Format=[nbjetInLepT][nbjetInHadT]
   tree->Branch("kin_lepB_pt", &b_kin_lepB_pt, "kin_lepB_pt/F");
   tree->Branch("kin_lepB_eta", &b_kin_lepB_eta, "kin_lepB_eta/F");
-  tree->Branch("kin_lepB_phi", &b_kin_lepB_phi, "kin_lepB_phi/F");
+  tree->Branch("kin_lepB_dphi", &b_kin_lepB_dphi, "kin_lepB_dphi/F");
   tree->Branch("kin_lepB_m", &b_kin_lepB_m, "kin_lepB_m/F");
   tree->Branch("kin_lepW_pt", &b_kin_lepW_pt, "kin_lepW_pt/F");
   tree->Branch("kin_lepW_eta", &b_kin_lepW_eta, "kin_lepW_eta/F");
-  tree->Branch("kin_lepW_phi", &b_kin_lepW_phi, "kin_lepW_phi/F");
+  tree->Branch("kin_lepW_dphi", &b_kin_lepW_dphi, "kin_lepW_dphi/F");
   tree->Branch("kin_lepT_pt", &b_kin_lepT_pt, "kin_lepT_pt/F");
   tree->Branch("kin_lepT_eta", &b_kin_lepT_eta, "kin_lepT_eta/F");
-  tree->Branch("kin_lepT_phi", &b_kin_lepT_phi, "kin_lepT_phi/F");
+  tree->Branch("kin_lepT_dphi", &b_kin_lepT_dphi, "kin_lepT_dphi/F");
   tree->Branch("kin_hadJ1_pt", &b_kin_hadJ1_pt, "kin_hadJ1_pt/F");
   tree->Branch("kin_hadJ1_eta", &b_kin_hadJ1_eta, "kin_hadJ1_eta/F");
-  tree->Branch("kin_hadJ1_phi", &b_kin_hadJ1_phi, "kin_hadJ1_phi/F");
+  tree->Branch("kin_hadJ1_dphi", &b_kin_hadJ1_dphi, "kin_hadJ1_dphi/F");
   tree->Branch("kin_hadJ1_m", &b_kin_hadJ1_m, "kin_hadJ1_m/F");
   tree->Branch("kin_hadJ2_pt", &b_kin_hadJ2_pt, "kin_hadJ2_pt/F");
   tree->Branch("kin_hadJ2_eta", &b_kin_hadJ2_eta, "kin_hadJ2_eta/F");
-  tree->Branch("kin_hadJ2_phi", &b_kin_hadJ2_phi, "kin_hadJ2_phi/F");
+  tree->Branch("kin_hadJ2_dphi", &b_kin_hadJ2_dphi, "kin_hadJ2_dphi/F");
   tree->Branch("kin_hadJ2_m", &b_kin_hadJ2_m, "kin_hadJ2_m/F");
   tree->Branch("kin_hadB_pt", &b_kin_hadB_pt, "kin_hadB_pt/F");
   tree->Branch("kin_hadB_eta", &b_kin_hadB_eta, "kin_hadB_eta/F");
-  tree->Branch("kin_hadB_phi", &b_kin_hadB_phi, "kin_hadB_phi/F");
+  tree->Branch("kin_hadB_dphi", &b_kin_hadB_dphi, "kin_hadB_dphi/F");
   tree->Branch("kin_hadB_m", &b_kin_hadB_m, "kin_hadB_m/F");
   tree->Branch("kin_hadW12_pt", &b_kin_hadW12_pt, "kin_hadW12_pt/F");
   tree->Branch("kin_hadW12_eta", &b_kin_hadW12_eta, "kin_hadW12_eta/F");
-  tree->Branch("kin_hadW12_phi", &b_kin_hadW12_phi, "kin_hadW12_phi/F");
+  tree->Branch("kin_hadW12_dphi", &b_kin_hadW12_dphi, "kin_hadW12_dphi/F");
   tree->Branch("kin_hadW12_dR", &b_kin_hadW12_dR, "kin_hadW12_dR/F");
   tree->Branch("kin_hadW23_pt", &b_kin_hadW23_pt, "kin_hadW23_pt/F");
   tree->Branch("kin_hadW23_eta", &b_kin_hadW23_eta, "kin_hadW23_eta/F");
-  tree->Branch("kin_hadW23_phi", &b_kin_hadW23_phi, "kin_hadW23_phi/F");
+  tree->Branch("kin_hadW23_dphi", &b_kin_hadW23_dphi, "kin_hadW23_dphi/F");
   tree->Branch("kin_hadW23_dR", &b_kin_hadW23_dR, "kin_hadW23_dR/F");
   tree->Branch("kin_hadW13_pt", &b_kin_hadW13_pt, "kin_hadW13_pt/F");
   tree->Branch("kin_hadW13_eta", &b_kin_hadW13_eta, "kin_hadW13_eta/F");
-  tree->Branch("kin_hadW13_phi", &b_kin_hadW13_phi, "kin_hadW13_phi/F");
+  tree->Branch("kin_hadW13_dphi", &b_kin_hadW13_dphi, "kin_hadW13_dphi/F");
   tree->Branch("kin_hadW13_dR", &b_kin_hadW13_dR, "kin_hadW13_dR/F");
   tree->Branch("kin_hadT_pt", &b_kin_hadT_pt, "kin_hadT_pt/F");
   tree->Branch("kin_hadT_eta", &b_kin_hadT_eta, "kin_hadT_eta/F");
-  tree->Branch("kin_hadT_phi", &b_kin_hadT_phi, "kin_hadT_phi/F");
+  tree->Branch("kin_hadT_dphi", &b_kin_hadT_dphi, "kin_hadT_dphi/F");
 
   tree->Branch("kin_theta1", &b_kin_theta1, "kin_theta1/F"); // Angle between top and b
   tree->Branch("kin_theta2", &b_kin_theta2, "kin_theta2/F"); // Angle between t-b and w->jj plane
@@ -198,13 +198,13 @@ void AnalyzeM3HYTuple::Loop(const string modeStr, const string outFileName)
     b_lepton_phi = lepton_phi;
 
     TLorentzVector metP4;
-    metP4.SetPtEtaPhiM(MET, 0, MET_phi, 0);
+    metP4.SetPtEtaPhiM(MET, 0, MET_dphi, 0);
 
     b_met_pt = MET;
-    b_met_phi = MET_phi;
+    b_met_dphi = MET_dphi;
 
     std::vector<size_t> jetIdxs;
-    const auto jets_pt = *jet_pT, jets_eta = *jet_eta, jets_phi = *jet_phi, jets_e = *jet_E;
+    const auto jets_pt = *jet_pT, jets_eta = *jet_eta, jets_dphi = *jet_dphi, jets_e = *jet_E;
     const auto jets_CSV = *jet_CSV, jets_CvsB = *jet_CvsB, jets_CvsL = *jet_CvsL;
     b_bjets_n = 0;
     for ( int j=0; j<jet_number; ++j ) {
@@ -215,16 +215,16 @@ void AnalyzeM3HYTuple::Loop(const string modeStr, const string outFileName)
     if ( jetIdxs.size() < 4 ) continue;
     b_jets_n = jetIdxs.size();
 
+    std::vector<size_t> bestIdxs;
+    TLorentzVector jetP4s[4];
     if ( algoType == AlgoType::M3 ) {
       double maxM3Pt = 0;
-      std::vector<size_t> bestIdxs;
-      TLorentzVector jetP4s[4];
       for ( auto ii1 = jetIdxs.begin(); ii1 != jetIdxs.end(); ++ii1 ) {
-        jetP4s[1].SetPtEtaPhiE(jets_pt[*ii1], jets_eta[*ii1], jets_phi[*ii1], jets_e[*ii1]);
+        jetP4s[1].SetPtEtaPhiE(jets_pt[*ii1], jets_eta[*ii1], jets_dphi[*ii1], jets_e[*ii1]);
         for ( auto ii2 = ii1+1; ii2 != jetIdxs.end(); ++ii2 ) {
-          jetP4s[2].SetPtEtaPhiE(jets_pt[*ii2], jets_eta[*ii2], jets_phi[*ii2], jets_e[*ii2]);
+          jetP4s[2].SetPtEtaPhiE(jets_pt[*ii2], jets_eta[*ii2], jets_dphi[*ii2], jets_e[*ii2]);
           for ( auto ii3 = ii2+1; ii3 != jetIdxs.end(); ++ii3 ) {
-            jetP4s[3].SetPtEtaPhiE(jets_pt[*ii3], jets_eta[*ii3], jets_phi[*ii3], jets_e[*ii3]);
+            jetP4s[3].SetPtEtaPhiE(jets_pt[*ii3], jets_eta[*ii3], jets_dphi[*ii3], jets_e[*ii3]);
 
             const double m3Pt = (jetP4s[1]+jetP4s[2]+jetP4s[3]).Pt();
             if ( m3Pt > maxM3Pt ) {
@@ -237,12 +237,10 @@ void AnalyzeM3HYTuple::Loop(const string modeStr, const string outFileName)
     }
     else if ( algoType == AlgoType::dR ) {
       double minDR = 1e9;
-      std::vector<size_t> bestIdxs;
-      TLorentzVector jetP4s[4];
       for ( auto ii1 = jetIdxs.begin(); ii1 != jetIdxs.end(); ++ii1 ) {
-        jetP4s[1].SetPtEtaPhiE(jets_pt[*ii1], jets_eta[*ii1], jets_phi[*ii1], jets_e[*ii1]);
+        jetP4s[1].SetPtEtaPhiE(jets_pt[*ii1], jets_eta[*ii1], jets_dphi[*ii1], jets_e[*ii1]);
         for ( auto ii2 = ii1+1; ii2 != jetIdxs.end(); ++ii2 ) {
-          jetP4s[2].SetPtEtaPhiE(jets_pt[*ii2], jets_eta[*ii2], jets_phi[*ii2], jets_e[*ii2]);
+          jetP4s[2].SetPtEtaPhiE(jets_pt[*ii2], jets_eta[*ii2], jets_dphi[*ii2], jets_e[*ii2]);
           const double dR = jetP4s[1].DeltaR(jetP4s[2]);
           if ( dR < minDR ) {
             bestIdxs = {size_t(b_jets_n), *ii1, *ii2, size_t(b_jets_n)};
@@ -252,13 +250,13 @@ void AnalyzeM3HYTuple::Loop(const string modeStr, const string outFileName)
       }
       if ( !bestIdxs.empty() ) {
         const auto i1 = bestIdxs[1], i2 = bestIdxs[2];
-        jetP4s[1].SetPtEtaPhiE(jets_pt[i1], jets_eta[i1], jets_phi[i1], jets_e[i1]);
-        jetP4s[2].SetPtEtaPhiE(jets_pt[i2], jets_eta[i2], jets_phi[i2], jets_e[i2]);
+        jetP4s[1].SetPtEtaPhiE(jets_pt[i1], jets_eta[i1], jets_dphi[i1], jets_e[i1]);
+        jetP4s[2].SetPtEtaPhiE(jets_pt[i2], jets_eta[i2], jets_dphi[i2], jets_e[i2]);
         const auto wP4 = jetP4s[1]+jetP4s[2];
         double minDR2 = 1e9;
         for ( auto i3 : jetIdxs ) {
           if ( i3 == i1 or i3 == i2 ) continue;
-          jetP4s[3].SetPtEtaPhiE(jets_pt[i3], jets_eta[i3], jets_phi[i3], jets_e[i3]);
+          jetP4s[3].SetPtEtaPhiE(jets_pt[i3], jets_eta[i3], jets_dphi[i3], jets_e[i3]);
 
           const double dR = jetP4s[3].DeltaR(wP4);
           if ( dR < minDR2 ) {
@@ -294,7 +292,7 @@ void AnalyzeM3HYTuple::Loop(const string modeStr, const string outFileName)
     b_kin_bjetcode = 0;
     for ( size_t i=0; i<4; ++i ) {
       const size_t j = bestIdxs[i];
-      jetP4s[i].SetPtEtaPhiE(jets_pt[j], jets_eta[j], jets_phi[j], jets_e[j]);
+      jetP4s[i].SetPtEtaPhiE(jets_pt[j], jets_eta[j], jets_dphi[j], jets_e[j]);
       if ( jets_CSV[j] > CSVM ) {
         if ( i == 0 ) b_kin_bjetcode = 10;
         else b_kin_bjetcode += 1;
@@ -307,27 +305,27 @@ void AnalyzeM3HYTuple::Loop(const string modeStr, const string outFileName)
     hHW_dR->Fill( jetP4s[1].DeltaR(jetP4s[2]) );
     hHT_m->Fill( (jetP4s[1]+jetP4s[2]+jetP4s[3]).M() );
 
-    b_kin_lepB_pt = jetP4s[0].Pt(); b_kin_lepB_eta = jetP4s[0].Eta(); b_kin_lepB_phi = jetP4s[0].Phi(); b_kin_lepB_m = jetP4s[0].M();
-    b_kin_hadJ1_pt = jetP4s[1].Pt(); b_kin_hadJ1_eta = jetP4s[1].Eta(); b_kin_hadJ1_phi = jetP4s[1].Phi(); b_kin_hadJ1_m = jetP4s[1].M();
-    b_kin_hadJ2_pt = jetP4s[2].Pt(); b_kin_hadJ2_eta = jetP4s[2].Eta(); b_kin_hadJ2_phi = jetP4s[2].Phi(); b_kin_hadJ2_m = jetP4s[2].M();
-    b_kin_hadB_pt = jetP4s[3].Pt(); b_kin_hadB_eta = jetP4s[3].Eta(); b_kin_hadB_phi = jetP4s[3].Phi(); b_kin_hadB_m = jetP4s[3].M();
+    b_kin_lepB_pt = jetP4s[0].Pt(); b_kin_lepB_eta = jetP4s[0].Eta(); b_kin_lepB_dphi = jetP4s[0].Phi(); b_kin_lepB_m = jetP4s[0].M();
+    b_kin_hadJ1_pt = jetP4s[1].Pt(); b_kin_hadJ1_eta = jetP4s[1].Eta(); b_kin_hadJ1_dphi = jetP4s[1].Phi(); b_kin_hadJ1_m = jetP4s[1].M();
+    b_kin_hadJ2_pt = jetP4s[2].Pt(); b_kin_hadJ2_eta = jetP4s[2].Eta(); b_kin_hadJ2_dphi = jetP4s[2].Phi(); b_kin_hadJ2_m = jetP4s[2].M();
+    b_kin_hadB_pt = jetP4s[3].Pt(); b_kin_hadB_eta = jetP4s[3].Eta(); b_kin_hadB_dphi = jetP4s[3].Phi(); b_kin_hadB_m = jetP4s[3].M();
 
     const auto lepW = leptonP4+metP4;
     const auto lepT = lepW+jetP4s[0];
-    b_kin_lepW_pt = lepW.Pt(); b_kin_lepW_eta = lepW.Eta(); b_kin_lepW_phi = lepW.Phi(); b_kin_lepW_m = lepW.M();
-    b_kin_lepT_pt = lepT.Pt(); b_kin_lepT_eta = lepT.Eta(); b_kin_lepT_phi = lepT.Phi(); b_kin_lepT_m = lepT.M();
+    b_kin_lepW_pt = lepW.Pt(); b_kin_lepW_eta = lepW.Eta(); b_kin_lepW_dphi = lepW.Phi(); b_kin_lepW_m = lepW.M();
+    b_kin_lepT_pt = lepT.Pt(); b_kin_lepT_eta = lepT.Eta(); b_kin_lepT_dphi = lepT.Phi(); b_kin_lepT_m = lepT.M();
 
     const auto hadW12 = jetP4s[1]+jetP4s[2];
     const auto hadW23 = jetP4s[2]+jetP4s[3];
     const auto hadW13 = jetP4s[1]+jetP4s[3];
     const auto hadT = hadW12+jetP4s[3];
-    b_kin_hadW12_pt = hadW12.Pt(); b_kin_hadW12_eta = hadW12.Eta(); b_kin_hadW12_phi = hadW12.Phi(); b_kin_hadW12_m = hadW12.M();
-    b_kin_hadW23_pt = hadW23.Pt(); b_kin_hadW23_eta = hadW23.Eta(); b_kin_hadW23_phi = hadW23.Phi(); b_kin_hadW23_m = hadW23.M();
-    b_kin_hadW13_pt = hadW13.Pt(); b_kin_hadW13_eta = hadW13.Eta(); b_kin_hadW13_phi = hadW13.Phi(); b_kin_hadW13_m = hadW13.M();
+    b_kin_hadW12_pt = hadW12.Pt(); b_kin_hadW12_eta = hadW12.Eta(); b_kin_hadW12_dphi = hadW12.Phi(); b_kin_hadW12_m = hadW12.M();
+    b_kin_hadW23_pt = hadW23.Pt(); b_kin_hadW23_eta = hadW23.Eta(); b_kin_hadW23_dphi = hadW23.Phi(); b_kin_hadW23_m = hadW23.M();
+    b_kin_hadW13_pt = hadW13.Pt(); b_kin_hadW13_eta = hadW13.Eta(); b_kin_hadW13_dphi = hadW13.Phi(); b_kin_hadW13_m = hadW13.M();
     b_kin_hadW12_dR = jetP4s[1].DeltaR(jetP4s[2]);
     b_kin_hadW23_dR = jetP4s[2].DeltaR(jetP4s[3]);
     b_kin_hadW13_dR = jetP4s[1].DeltaR(jetP4s[3]);
-    b_kin_hadT_pt = hadT.Pt(); b_kin_hadT_eta = hadT.Eta(); b_kin_hadT_phi = hadT.Phi(); b_kin_hadT_m = hadT.M();
+    b_kin_hadT_pt = hadT.Pt(); b_kin_hadT_eta = hadT.Eta(); b_kin_hadT_dphi = hadT.Phi(); b_kin_hadT_m = hadT.M();
 
     TLorentzVector cm_hb = jetP4s[3], cm_hj1 = jetP4s[1], cm_hj2 = jetP4s[2];
     TLorentzVector cm_top = cm_hb+cm_hj1+cm_hj2;
@@ -379,10 +377,10 @@ void AnalyzeM3HYTuple::Loop(const string modeStr, const string outFileName)
       const size_t jByPt1 = addJetIdxsByPt[0], jByPt2 = addJetIdxsByPt[1];
       const size_t jByCSV1 = addJetIdxs[0], jByCSV2 = addJetIdxs[1];
       TLorentzVector addJetByCSV1, addJetByCSV2, addJetByPt1, addJetByPt2;
-      addJetByCSV1.SetPtEtaPhiE(jets_pt[jByPt1], jets_eta[jByPt1], jets_phi[jByPt1], jets_e[jByPt1]);
-      addJetByCSV1.SetPtEtaPhiE(jets_pt[jByPt2], jets_eta[jByPt2], jets_phi[jByPt2], jets_e[jByPt2]);
-      addJetByPt1.SetPtEtaPhiE(jets_pt[jByCSV1], jets_eta[jByCSV1], jets_phi[jByCSV1], jets_e[jByCSV1]);
-      addJetByPt1.SetPtEtaPhiE(jets_pt[jByCSV2], jets_eta[jByCSV2], jets_phi[jByCSV2], jets_e[jByCSV2]);
+      addJetByCSV1.SetPtEtaPhiE(jets_pt[jByPt1], jets_eta[jByPt1], jets_dphi[jByPt1], jets_e[jByPt1]);
+      addJetByCSV1.SetPtEtaPhiE(jets_pt[jByPt2], jets_eta[jByPt2], jets_dphi[jByPt2], jets_e[jByPt2]);
+      addJetByPt1.SetPtEtaPhiE(jets_pt[jByCSV1], jets_eta[jByCSV1], jets_dphi[jByCSV1], jets_e[jByCSV1]);
+      addJetByPt1.SetPtEtaPhiE(jets_pt[jByCSV2], jets_eta[jByCSV2], jets_dphi[jByCSV2], jets_e[jByCSV2]);
 
       b_kin_addJetByPt1_pt = jets_pt[jByPt1];
       b_kin_addJetByPt2_pt = jets_pt[jByPt2];
@@ -401,6 +399,19 @@ void AnalyzeM3HYTuple::Loop(const string modeStr, const string outFileName)
       hAddJJ_m->Fill(b_kin_addJetsByCSV_m);
 
     }
+
+    // Rotate by lepton phi
+    rotate(b_met_dphi, b_lepton_phi);
+    rotate(b_kin_lepB_dphi, b_lepton_phi);
+    rotate(b_kin_lepW_dphi, b_lepton_phi);
+    rotate(b_kin_lepT_dphi, b_lepton_phi);
+    rotate(b_kin_hadJ1_dphi, b_lepton_phi);
+    rotate(b_kin_hadJ2_dphi, b_lepton_phi);
+    rotate(b_kin_hadB_dphi, b_lepton_phi);
+    rotate(b_kin_hadW12_dphi, b_lepton_phi);
+    rotate(b_kin_hadW23_dphi, b_lepton_phi);
+    rotate(b_kin_hadW13_dphi, b_lepton_phi);
+    rotate(b_kin_hadT_dphi, b_lepton_phi);
 
     tree->Fill();
   }
