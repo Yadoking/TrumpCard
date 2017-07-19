@@ -218,6 +218,8 @@ void AnalyzeKinFitDelphes::Loop(const string modeStr, const string outFileName)
 
     TLorentzVector metP4;
     metP4.SetPtEtaPhiM(met_pt, 0, met_phi, 0);
+    b_met_pt = met_pt;
+    b_met_dphi = met_phi;
 
     std::vector<size_t> jetIdxs;
     b_bjets_n = 0;
