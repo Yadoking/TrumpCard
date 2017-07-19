@@ -8,7 +8,7 @@
 #include <TLorentzVector.h>
 #include <iostream>
 
-void AnalyzeM3HYTuple::Loop(const string outFileName)
+void AnalyzeM3HYTuple::Loop(const string modeStr, const string outFileName)
 {
   //   In a ROOT session, you can do:
   //      root> .L AnalyzeM3HYTuple.C
@@ -36,6 +36,8 @@ void AnalyzeM3HYTuple::Loop(const string outFileName)
 
   const double CSVM = 0.8484;
   const double CSVT = 0.9535;
+  enum class Mode { TT=0, FCNC };
+  Mode mode = (modeStr == "FCNC") ? Mode::FCNC : Mode::TT;
 
   TFile* fout = new TFile(outFileName.c_str(), "recreate");
   TTree* tree = new TTree("tree", "tree");
@@ -234,7 +236,16 @@ void AnalyzeM3HYTuple::Loop(const string outFileName)
     // Sort by CSV in increasing order - j1+j2 will prefer 80GeV for SM top, j2+j3 will prefer 125GeV for FCNC top
     // Keep j0 as is which is the jet from leptonically decaying top
     std::sort(std::next(bestIdxs.begin()), bestIdxs.end(),
-              [&](size_t a, size_t b){ return jets_CSV[a] < jets_CSV[b]; });
+              [&](size_t a, size_t b){ return jets_pt[a] > jets_pt[b]; });
+    if ( mode == Mode::TT ) {
+      std::stable_sort(std::next(bestIdxs.begin()), bestIdxs.end(),
+                       [&](size_t a, size_t b){ return jets_CSV[a] < jets_CSV[b]; });
+    }
+    else if ( mode == Mode::FCNC ) {
+      std::stable_sort(std::next(bestIdxs.begin()), bestIdxs.end(),
+                       [&](size_t a, size_t b){ return jets_CSV[a] > jets_CSV[b]; });
+    }
+
 
     for ( auto i : jetIdxs ) {
       if ( i == bestIdxs[1] or i == bestIdxs[2] or i == bestIdxs[3] ) continue;

@@ -3,13 +3,16 @@
 R__LOAD_LIBRARY(AnalyzeM3HYTuple.C+)
 R__LOAD_LIBRARY(AnalyzeM3Delphes.C+)
 
+const string mode = "FCNC";
+//const string mode = "tt";
+
 void run_CMSM3();
 void run_DelphesM3();
 
 void run_M3()
 {
   run_CMSM3();
-  //run_DelphesM3();
+  run_DelphesM3();
 }
 
 void run_CMSM3()
@@ -26,8 +29,8 @@ void run_CMSM3()
   AnalyzeM3HYTuple tFCNC(&chainFCNC);
   AnalyzeM3HYTuple tTTBB(&chainTTBB);
 
-  tFCNC.Loop("m3/cmsTuple_FCNC.root");
-  tTTBB.Loop("m3/cmsTuple_ttbb.root");
+  tFCNC.Loop(mode, "m3/cmsTuple_FCNC.root");
+  tTTBB.Loop(mode, "m3/cmsTuple_ttbb.root");
 }
 
 void run_DelphesM3()
@@ -41,6 +44,6 @@ void run_DelphesM3()
   AnalyzeM3Delphes tFCNC(&chainFCNC);
   AnalyzeM3Delphes tTTBB(&chainTTBB);
 
-  tFCNC.Loop("m3/delphes_FCNC.root");
-  tTTBB.Loop("m3/delphes_ttbb.root");
+  tFCNC.Loop(mode, "m3/delphes_FCNC.root");
+  tTTBB.Loop(mode, "m3/delphes_ttbb.root");
 }

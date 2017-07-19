@@ -12,8 +12,8 @@ void run_DelphesKinFit();
 
 void run_KinFit()
 {
-  run_CMSKinFit();
-  //run_DelphesKinFit();
+  //run_CMSKinFit();
+  run_DelphesKinFit();
 }
 
 void run_CMSKinFit()
