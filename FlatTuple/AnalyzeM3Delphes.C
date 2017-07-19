@@ -38,6 +38,8 @@ void AnalyzeM3Delphes::Loop(const string modeStr, const string outFileName)
   const double CSVT = 0.9535;
   enum class Mode { TT=0, FCNC };
   Mode mode = (modeStr == "FCNC") ? Mode::FCNC : Mode::TT;
+  enum class AlgoType { M3=0, dR };
+  AlgoType algoType = Mode::M3;
 
   TFile* fout = new TFile(outFileName.c_str(), "recreate");
   TTree* tree = new TTree("tree", "tree");
@@ -213,22 +215,58 @@ void AnalyzeM3Delphes::Loop(const string modeStr, const string outFileName)
     if ( jetIdxs.size() < 4 ) continue;
     b_jets_n = jetIdxs.size();
 
-    double maxM3Pt = 0;
-    std::vector<size_t> bestIdxs;
-    TLorentzVector jetP4s[4];
-    for ( auto ii1 = jetIdxs.begin(); ii1 != jetIdxs.end(); ++ii1 ) {
-      jetP4s[1].SetPtEtaPhiM(jets_pt[*ii1], jets_eta[*ii1], jets_phi[*ii1], jets_m[*ii1]);
-      for ( auto ii2 = ii1+1; ii2 != jetIdxs.end(); ++ii2 ) {
-        jetP4s[2].SetPtEtaPhiM(jets_pt[*ii2], jets_eta[*ii2], jets_phi[*ii2], jets_m[*ii2]);
-        for ( auto ii3 = ii2+1; ii3 != jetIdxs.end(); ++ii3 ) {
-          jetP4s[3].SetPtEtaPhiM(jets_pt[*ii3], jets_eta[*ii3], jets_phi[*ii3], jets_m[*ii3]);
+    if ( algoType == AlgoType::M3 ) {
+      double maxM3Pt = 0;
+      std::vector<size_t> bestIdxs;
+      TLorentzVector jetP4s[4];
+      for ( auto ii1 = jetIdxs.begin(); ii1 != jetIdxs.end(); ++ii1 ) {
+        jetP4s[1].SetPtEtaPhiM(jets_pt[*ii1], jets_eta[*ii1], jets_phi[*ii1], jets_m[*ii1]);
+        for ( auto ii2 = ii1+1; ii2 != jetIdxs.end(); ++ii2 ) {
+          jetP4s[2].SetPtEtaPhiM(jets_pt[*ii2], jets_eta[*ii2], jets_phi[*ii2], jets_m[*ii2]);
+          for ( auto ii3 = ii2+1; ii3 != jetIdxs.end(); ++ii3 ) {
+            jetP4s[3].SetPtEtaPhiM(jets_pt[*ii3], jets_eta[*ii3], jets_phi[*ii3], jets_m[*ii3]);
 
-          const double m3Pt = (jetP4s[1]+jetP4s[2]+jetP4s[3]).Pt();
-          if ( m3Pt > maxM3Pt ) {
-            maxM3Pt = m3Pt;
-            bestIdxs = {jets_n, *ii1, *ii2, *ii3};
+            const double m3Pt = (jetP4s[1]+jetP4s[2]+jetP4s[3]).Pt();
+            if ( m3Pt > maxM3Pt ) {
+              maxM3Pt = m3Pt;
+              bestIdxs = {jets_n, *ii1, *ii2, *ii3};
+            }
           }
         }
+      }
+    }
+    else if ( algoType == AlgoType::dR ) {
+      double minDR = 1e9;
+      std::vector<size_t> bestIdxs;
+      TLorentzVector jetP4s[4];
+      for ( auto ii1 = jetIdxs.begin(); ii1 != jetIdxs.end(); ++ii1 ) {
+        jetP4s[1].SetPtEtaPhiM(jets_pt[*ii1], jets_eta[*ii1], jets_phi[*ii1], jets_m[*ii1]);
+        for ( auto ii2 = ii1+1; ii2 != jetIdxs.end(); ++ii2 ) {
+          jetP4s[2].SetPtEtaPhiM(jets_pt[*ii2], jets_eta[*ii2], jets_phi[*ii2], jets_m[*ii2]);
+          const double dR = jetP4s[1].DeltaR(jetP4s[2]);
+          if ( dR < minDR ) {
+            bestIdxs = {jets_n, *ii1, *ii2, jets_n};
+            minDR = dR;
+          }
+        }
+      }
+      if ( !bestIdxs.empty() ) {
+        const auto i1 = bestIdxs[1], i2 = bestIdxs[2];
+        jetP4s[1].SetPtEtaPhiM(jets_pt[i1], jets_eta[i1], jets_phi[i1], jets_m[i1]);
+        jetP4s[2].SetPtEtaPhiM(jets_pt[i2], jets_eta[i2], jets_phi[i2], jets_m[i2]);
+        const auto wP4 = jetP4s[1]+jetP4s[2];
+        double minDR2 = 1e9;
+        for ( auto i3 : jetIdxs ) {
+          if ( i3 == i1 or i3 == i2 ) continue;
+          jetP4s[3].SetPtEtaPhiM(jets_pt[i3], jets_eta[i3], jets_phi[i3], jets_m[i3]);
+
+          const double dR = jetP4s[3].DeltaR(wP4);
+          if ( dR < minDR2 ) {
+            bestIdxs[3] = i3;
+            minDR2 = dR;
+          }
+        }
+        if ( minDR2 == 1e9 ) bestIdxs.clear();
       }
     }
     if ( bestIdxs.empty() ) continue;
