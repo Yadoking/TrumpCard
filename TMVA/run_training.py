@@ -2,19 +2,24 @@
 import sys, os
 
 if len(sys.argv) < 3:
+    print sys.argv[0], "SAMPLETYPE SUFFIX"
+    print '  sampleType = ["cmsTuple", "cmsTuple.withBtag", "delphes"]'
+    print '  suffix     = [kin", "m3", "deltaR"]'
     sys.exit(1)
 
-sampleType, suffix = sys.argv[1], sys.argv[2]
+sampleType0, suffix = sys.argv[1], sys.argv[2]
 if suffix not in ["kin", "m3", "deltaR"]:
     print "choose among kin, m3 or deltaR"
     sys.exit(1)
-if sampleType not in ["cmsTuple", "cmsTuple.withBtag", "delphes"]:
+if sampleType0 not in ["cmsTuple", "cmsTuple.withBtag", "delphes"]:
     print "choose sampleType in cmsTuple, cmsTuple.withBtag, delphes"
     sys.exit(1)
-doBtag = False
-if sampleType == "cmsTuple.withBtag":
+if sampleType0 == "cmsTuple.withBtag":
     sampleType = "cmsTuple"
     doBtag = True
+else:
+    sampleType = sampleType0
+    doBtag = False
 
 from ROOT import *
 
@@ -25,21 +30,26 @@ fout = TFile("mva.root", "recreate")
 factory = TMVA.Factory("TMVAClassification", fout,
                        "!V:!Silent:Color:DrawProgressBar:Transformations=I;D;P;G;D:AnalysisType=Classification" )
 
-loader = TMVA.DataLoader("dataset")
+loader = TMVA.DataLoader("mva_%s_%s" % (sampleType0, suffix))
 loader.AddVariable("jets_n", "Jet multiplicity", "", "I")
 loader.AddVariable("bjets_n", "B-jet multiplicity", "", "I")
 loader.AddVariable("kin_nbjetInHad:=kin_bjetcode%10", "B-jet multiplicity in the hadronic top", "", "I")
 loader.AddVariable("kin_theta1", "Theta1", "", "F")
 loader.AddVariable("kin_theta2", "Theta2", "", "F")
 #loader.AddVariable("kin_chi2", "Fit Chi2", "", "F")
+loader.AddVariable("lepton_pt", "lepton pt", "GeV", "F")
+loader.AddVariable("met_pt", "met pt", "GeV", "F")
+loader.AddVariable("met_dphi", "met dphi", "GeV", "F")
 for name in ["lepT", "lepB", "lepW", "hadT", "hadJ1", "hadJ2", "hadB"]:
     loader.AddVariable("kin_%s_m" % name, "%s mass" % name, "GeV", "F")
     loader.AddVariable("kin_%s_pt" % name, "%s pt" % name, "GeV", "F")
     loader.AddVariable("kin_%s_eta" % name, "%s eta" % name, "", "F")
+    loader.AddVariable("kin_%s_dphi" % name, "%s dphi" % name, "", "F")
 for name in ["hadW12", "hadW23", "hadW13"]:
     loader.AddVariable("kin_%s_m" % name, "%s mass" % name, "GeV", "F")
     loader.AddVariable("kin_%s_pt" % name, "%s pt" % name, "GeV", "F")
     loader.AddVariable("kin_%s_dR" % name, "%s deltaR" % name, "", "F")
+    loader.AddVariable("kin_%s_dphi" % name, "%s dphi" % name, "", "F")
 if doBtag and sampleType == "cmsTuple":
     for name in ["lepB", "hadJ1", "hadJ2", "hadB"]:
         loader.AddVariable("kin_%s_CSV:=max(0,kin_%s_CSV)" % (name, name), "%s CSV" % name, "", "F")
@@ -158,5 +168,5 @@ factory.TestAllMethods()
 factory.EvaluateAllMethods()
 fout.Close()
 
-#TMVA.TMVAGui("mva.root")
+TMVA.TMVAGui("mva.root")
 
