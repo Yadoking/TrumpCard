@@ -30,7 +30,7 @@ void Yosi::Loop()
 //    fChain->GetEntry(jentry);       //read all branches
 //by  b_branchname->GetEntry(ientry); //read only this branch
 
-   TFile*fout = new TFile("temp.root", "recreate");
+   TFile* fout = new TFile("temp.root", "recreate");
    TTree* tree = new TTree("namu", "namu");
 
    TH1F* hdR = new TH1F("dR", "dR", 100, 0, 5);
@@ -195,7 +195,7 @@ void Yosi::Loop()
    }
    fout->Write();
    /*
-   TCanvas *c = new TCanvas("cDr", "delta R", 500, 500);
+   TCanvas* c = new TCanvas("cDr", "delta R", 500, 500);
    hdR->Draw();
    c = new TCanvas("cdiM", "dijet Mass", 500, 500);
    hdijetM->Draw();
