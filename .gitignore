@@ -1,0 +1,6 @@
+*.d
+*.pcm
+*.so
+*_C_ACLiC_dict.*
+*_C_ACLiC_map.*
+*_C_ACLiC_linkdef.*
