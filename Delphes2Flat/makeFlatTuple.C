@@ -116,7 +116,7 @@ void makeFlatTuple()
   tree->Branch("subjets_phi", b_subjets_phi, "subjets_phi[subjets_n]/F");
   tree->Branch("subjets_q", b_subjets_q, "subjets_q[subjets_n]/S");
   tree->Branch("subjets_pdgId", b_subjets_pdgId, "subjets_pdgId[subjets_n]/S");
-  tree->Branch("subjets_jetIdx", b_subjets_jetIdx, "subjets_jetIdx[subjets_n]/s");
+  tree->Branch("subjets_jetIdx", b_subjets_jetIdx, "subjets_jetIdx[subjets_n]/S");
 
   // Create chain of root trees
   TChain chain("Delphes");
@@ -133,6 +133,9 @@ void makeFlatTuple()
   TClonesArray *branchMuon = treeReader->UseBranch("Muon");
   TClonesArray *branchElectron = treeReader->UseBranch("Electron");
   TClonesArray *branchJet = treeReader->UseBranch("Jet");
+  TClonesArray *branchEFlowTrack = treeReader->UseBranch("EFlowTrack");
+  TClonesArray *branchEFlowPhoton = treeReader->UseBranch("EFlowPhoton");
+  TClonesArray *branchEFlowNeutralHadron = treeReader->UseBranch("EFlowNeutralHadron");
 
   // Loop over all events
   for(Int_t entry = 0; entry < numberOfEntries; ++entry) {
@@ -316,22 +319,35 @@ void makeFlatTuple()
       TRefArray cons = jet->Constituents;
       for ( int j=0; j<cons.GetEntriesFast(); ++j ) {
         if ( b_subjets_n > subjets_N ) break;
-        else {
-          const TObject* obj = cons.At(j);
-          if ( !obj ) continue;
 
-          const GenParticle* p = dynamic_cast<const GenParticle*>(obj);
-          if ( !p ) continue;
+        const TObject* obj = cons.At(j);
+        if ( !obj ) continue;
 
-          b_subjets_pt[b_subjets_n] = p->PT;
-          b_subjets_eta[b_subjets_n] = p->Eta;
-          b_subjets_phi[b_subjets_n] = p->Phi;
-          b_subjets_q[b_subjets_n] = p->Charge;
-          b_subjets_pdgId[b_subjets_n] = p->PID;
-          b_subjets_jetIdx[b_subjets_n] = i;
-
-          ++b_subjets_n;
+        //const GenParticle* p = dynamic_cast<const GenParticle*>(obj);
+        const Track* track = dynamic_cast<const Track*>(obj);
+        const Tower* tower = dynamic_cast<const Tower*>(obj);
+        if ( track ) {
+          b_subjets_pt[b_subjets_n] = track->PT;
+          b_subjets_eta[b_subjets_n] = track->Eta;
+          b_subjets_phi[b_subjets_n] = track->Phi;
+          b_subjets_q[b_subjets_n] = track->Charge;
+          b_subjets_pdgId[b_subjets_n] = track->Charge*211;
         }
+        else if ( tower ) {
+          b_subjets_pt[b_subjets_n] = tower->ET;
+          b_subjets_eta[b_subjets_n] = tower->Eta;
+          b_subjets_phi[b_subjets_n] = tower->Phi;
+          b_subjets_q[b_subjets_n] = 0;
+          const bool isPhoton = ( tower->Eem > tower->Ehad ); // Crude estimation
+          if ( isPhoton ) b_subjets_pdgId[b_subjets_n] = 22; // photons
+          else b_subjets_pdgId[b_subjets_n] = 2112; // set as neutron
+        }
+        else {
+          cout << obj->IsA()->GetName() << endl;
+          continue;
+        }
+        b_subjets_jetIdx[b_subjets_n] = b_jets_n;
+        ++b_subjets_n;
       }
 
       ++b_jets_n;
@@ -343,5 +359,6 @@ void makeFlatTuple()
 
   tree->Write();
   fout->Close();
+
 }
 
