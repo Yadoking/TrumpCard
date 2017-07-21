@@ -48,6 +48,13 @@ public :
    Float_t         jets_m[17];   //[jets_n]
    Short_t         jets_flav[17];   //[jets_n]
    Float_t         jets_bTag[17];   //[jets_n]
+   UShort_t        subjets_n;
+   Float_t         subjets_pt[1000];
+   Float_t         subjets_eta[1000];
+   Float_t         subjets_phi[1000];
+   Short_t         subjets_q[1000];
+   Short_t         subjets_pdgId[1000];
+   UShort_t        subjets_jetIdx[1000];
 
    // List of branches
    TBranch        *b_run;   //!
@@ -75,6 +82,13 @@ public :
    TBranch        *b_jets_m;   //!
    TBranch        *b_jets_flav;   //!
    TBranch        *b_jets_bTag;   //!
+   TBranch        *b_subjets_n;
+   TBranch        *b_subjets_pt;
+   TBranch        *b_subjets_eta;
+   TBranch        *b_subjets_phi;
+   TBranch        *b_subjets_q;
+   TBranch        *b_subjets_pdgId;
+   TBranch        *b_subjets_jetIdx;
 
    AnalyzeM3Delphes(TTree *tree=0);
    virtual ~AnalyzeM3Delphes();
@@ -178,6 +192,13 @@ void AnalyzeM3Delphes::Init(TTree *tree)
    fChain->SetBranchAddress("jets_m", jets_m, &b_jets_m);
    fChain->SetBranchAddress("jets_flav", jets_flav, &b_jets_flav);
    fChain->SetBranchAddress("jets_bTag", jets_bTag, &b_jets_bTag);
+   fChain->SetBranchAddress("subjets_n", &subjets_n, &b_subjets_n);
+   fChain->SetBranchAddress("subjets_pt", &subjets_pt, &b_subjets_pt);
+   fChain->SetBranchAddress("subjets_eta", &subjets_eta, &b_subjets_eta);
+   fChain->SetBranchAddress("subjets_phi", &subjets_phi, &b_subjets_phi);
+   fChain->SetBranchAddress("subjets_q", &subjets_q, &b_subjets_q);
+   fChain->SetBranchAddress("subjets_pdgId", &subjets_pdgId, &b_subjets_pdgId);
+   fChain->SetBranchAddress("subjets_jetIdx", &subjets_jetIdx, &b_subjets_jetIdx);
    Notify();
 }
 

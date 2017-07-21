@@ -1,7 +1,7 @@
 #define AnalyzeM3Delphes_cxx
 
 #include "AnalyzeM3Delphes.h"
-#include <TH2.h>
+#include <TH2F.h>
 #include <TStyle.h>
 #include <TCanvas.h>
 
@@ -80,6 +80,19 @@ void AnalyzeM3Delphes::Loop(const string modeStr, const string outFileName)
   float b_kin_addJetByCSV2_pt, b_kin_addJetByCSV2_CSV;
   float b_kin_addJetsByPt_m, b_kin_addJetsByPt_dR;
   float b_kin_addJetsByCSV_m, b_kin_addJetsByCSV_dR;
+
+  TH2F* b_hJetImage_ch_n  = new TH2F("kin_hJetImage_ch_n", "Jet image ch n;#Delta#eta;#Delta#phi", 100, -10, 10, 100, -10, 10);
+  TH2F* b_hJetImage_nh_n  = new TH2F("kin_hJetImage_nh_n", "Jet image nh n;#Delta#eta;#Delta#phi", 100, -10, 10, 100, -10, 10);
+  TH2F* b_hJetImage_ph_n  = new TH2F("kin_hJetImage_ph_n", "Jet image ph n;#Delta#eta;#Delta#phi", 100, -10, 10, 100, -10, 10);
+  TH2F* b_hJetImage_ch_pt = new TH2F("kin_hJetImage_ch_pt", "Jet image ch pt;#Delta#eta;#Delta#phi", 100, -10, 10, 100, -10, 10);
+  TH2F* b_hJetImage_nh_pt = new TH2F("kin_hJetImage_nh_pt", "Jet image nh pt;#Delta#eta;#Delta#phi", 100, -10, 10, 100, -10, 10);
+  TH2F* b_hJetImage_ph_pt = new TH2F("kin_hJetImage_ph_pt", "Jet image ph pt;#Delta#eta;#Delta#phi", 100, -10, 10, 100, -10, 10);
+  b_hJetImage_ch_n->SetDirectory(0);
+  b_hJetImage_nh_n->SetDirectory(0);
+  b_hJetImage_ph_n->SetDirectory(0);
+  b_hJetImage_ch_pt->SetDirectory(0);
+  b_hJetImage_nh_pt->SetDirectory(0);
+  b_hJetImage_ph_pt->SetDirectory(0);
 
   tree->Branch("run", &b_run, "run/I");
   tree->Branch("event", &b_event, "event/I");
@@ -172,6 +185,20 @@ void AnalyzeM3Delphes::Loop(const string modeStr, const string outFileName)
   tree->Branch("kin_addJetByCSV1_CSV", &b_kin_addJetByCSV1_CSV, "kin_addJetByCSV1_CSV/F");
   tree->Branch("kin_addJetByCSV2_CSV", &b_kin_addJetByCSV2_CSV, "kin_addJetByCSV2_CSV/F");
 
+  tree->Branch("kin_hJetImage_ch_n", "TH2F", b_hJetImage_ch_n);
+  tree->Branch("kin_hJetImage_nh_n", "TH2F", b_hJetImage_nh_n);
+  tree->Branch("kin_hJetImage_ph_n", "TH2F", b_hJetImage_ph_n);
+  tree->Branch("kin_hJetImage_ch_pt", "TH2F", b_hJetImage_ch_pt);
+  tree->Branch("kin_hJetImage_nh_pt", "TH2F", b_hJetImage_nh_pt);
+  tree->Branch("kin_hJetImage_ph_pt", "TH2F", b_hJetImage_ph_pt);
+
+  TH2F* hJetImage_ch_n  = new TH2F("hJetImage_ch_n", "Jet image ch n;#Delta#eta;#Delta#phi", 100, -10, 10, 100, -10, 10);
+  TH2F* hJetImage_nh_n  = new TH2F("hJetImage_nh_n", "Jet image nh n;#Delta#eta;#Delta#phi", 100, -10, 10, 100, -10, 10);
+  TH2F* hJetImage_ph_n  = new TH2F("hJetImage_ph_n", "Jet image ph n;#Delta#eta;#Delta#phi", 100, -10, 10, 100, -10, 10);
+  TH2F* hJetImage_ch_pt = new TH2F("hJetImage_ch_pt", "Jet image ch pt;#Delta#eta;#Delta#phi", 100, -10, 10, 100, -10, 10);
+  TH2F* hJetImage_nh_pt = new TH2F("hJetImage_nh_pt", "Jet image nh pt;#Delta#eta;#Delta#phi", 100, -10, 10, 100, -10, 10);
+  TH2F* hJetImage_ph_pt = new TH2F("hJetImage_ph_pt", "Jet image ph pt;#Delta#eta;#Delta#phi", 100, -10, 10, 100, -10, 10);
+
   if (fChain == 0) return;
 
   //Long64_t nentries = 10000;
@@ -189,6 +216,12 @@ void AnalyzeM3Delphes::Loop(const string modeStr, const string outFileName)
     b_event = event;
     b_vertex_n = 1;
     b_weight_gen = 1;
+    b_hJetImage_ch_n->Reset();
+    b_hJetImage_ph_n->Reset();
+    b_hJetImage_nh_n->Reset();
+    b_hJetImage_ch_pt->Reset();
+    b_hJetImage_ph_pt->Reset();
+    b_hJetImage_nh_pt->Reset();
 
     TLorentzVector leptonP4;
     if ( muons_n >= 1 and muons_pt[0] > 30 and std::abs(muons_eta[0]) < 2.1 ) {
@@ -381,6 +414,39 @@ void AnalyzeM3Delphes::Loop(const string modeStr, const string outFileName)
     b_kin_hadJ2_CvsL = 0;
     b_kin_hadB_CvsL = 0;
 
+    // Fill the jet image
+    for ( int i=0; i<subjets_n; ++i ) {
+      const size_t jetIdx = subjets_jetIdx[i];
+      if ( jetIdx != bestIdxs[1] and jetIdx != bestIdxs[2] and jetIdx != bestIdxs[3] ) continue;
+      const double eta0 = jets_eta[jetIdx];
+      const double phi0 = jets_phi[jetIdx];
+
+      const double pt = subjets_pt[i];
+      const double eta = subjets_eta[i]-eta0;//b_kin_hadT_eta;
+      const double phi = subjets_phi[i]-phi0;//b_kin_hadT_dphi; // hadT_dphi is before the phi-rotation.
+      const int q = subjets_q[i];
+      const int pid = subjets_pdgId[i];
+
+      if ( q != 0 ) {
+        hJetImage_ch_n->Fill(eta, phi);
+        hJetImage_ch_pt->Fill(eta, phi, pt);
+        b_hJetImage_ch_n->Fill(eta, phi);
+        b_hJetImage_ch_pt->Fill(eta, phi, pt);
+      }
+      else if ( pid == 21 ) {
+        hJetImage_ph_n->Fill(eta, phi);
+        hJetImage_ph_pt->Fill(eta, phi, pt);
+        b_hJetImage_ph_n->Fill(eta, phi);
+        b_hJetImage_ph_pt->Fill(eta, phi, pt);
+      }
+      else {
+        hJetImage_nh_n->Fill(eta, phi);
+        hJetImage_nh_pt->Fill(eta, phi, pt);
+        b_hJetImage_nh_n->Fill(eta, phi);
+        b_hJetImage_nh_pt->Fill(eta, phi, pt);
+      }
+    }
+
     std::vector<size_t> addJetIdxs;
     for ( size_t j : jetIdxs ) {
       bool isTaken = false;
@@ -452,4 +518,10 @@ void AnalyzeM3Delphes::Loop(const string modeStr, const string outFileName)
   c = new TCanvas("cHW_m", "MW had", 500, 500); hHW_m->Draw();
   c = new TCanvas("cHW_dR", "dRW had", 500, 500); hHW_dR->Draw();
   c = new TCanvas("cHT_m", "MTop had", 500, 500); hHT_m->Draw();
+  c = new TCanvas("c_hJetImage_ch_n", "hJetImage_ch_n", 500, 500); hJetImage_ch_n->Draw();
+  c = new TCanvas("c_hJetImage_nh_n", "hJetImage_nh_n", 500, 500); hJetImage_nh_n->Draw();
+  c = new TCanvas("c_hJetImage_ph_n", "hJetImage_ph_n", 500, 500); hJetImage_ph_n->Draw();
+  c = new TCanvas("c_hJetImage_ch_pt", "hJetImage_ch_pt", 500, 500); hJetImage_ch_pt->Draw();
+  c = new TCanvas("c_hJetImage_nh_pt", "hJetImage_nh_pt", 500, 500); hJetImage_nh_pt->Draw();
+  c = new TCanvas("c_hJetImage_ph_pt", "hJetImage_ph_pt", 500, 500); hJetImage_ph_pt->Draw();
 }
