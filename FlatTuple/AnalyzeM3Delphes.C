@@ -81,12 +81,12 @@ void AnalyzeM3Delphes::Loop(const string modeStr, const string outFileName)
   float b_kin_addJetsByPt_m, b_kin_addJetsByPt_dR;
   float b_kin_addJetsByCSV_m, b_kin_addJetsByCSV_dR;
 
-  TH2F* b_hJetImage_ch_n  = new TH2F("kin_hJetImage_ch_n", "Jet image ch n;#Delta#eta;#Delta#phi", 100, -10, 10, 100, -10, 10);
-  TH2F* b_hJetImage_nh_n  = new TH2F("kin_hJetImage_nh_n", "Jet image nh n;#Delta#eta;#Delta#phi", 100, -10, 10, 100, -10, 10);
-  TH2F* b_hJetImage_ph_n  = new TH2F("kin_hJetImage_ph_n", "Jet image ph n;#Delta#eta;#Delta#phi", 100, -10, 10, 100, -10, 10);
-  TH2F* b_hJetImage_ch_pt = new TH2F("kin_hJetImage_ch_pt", "Jet image ch pt;#Delta#eta;#Delta#phi", 100, -10, 10, 100, -10, 10);
-  TH2F* b_hJetImage_nh_pt = new TH2F("kin_hJetImage_nh_pt", "Jet image nh pt;#Delta#eta;#Delta#phi", 100, -10, 10, 100, -10, 10);
-  TH2F* b_hJetImage_ph_pt = new TH2F("kin_hJetImage_ph_pt", "Jet image ph pt;#Delta#eta;#Delta#phi", 100, -10, 10, 100, -10, 10);
+  TH2F* b_hJetImage_ch_n  = new TH2F("kin_hJetImage_ch_n", "Jet image ch n;#Delta#eta;#Delta#phi", 50, -3, 3, 50, -3, 3);
+  TH2F* b_hJetImage_nh_n  = new TH2F("kin_hJetImage_nh_n", "Jet image nh n;#Delta#eta;#Delta#phi", 50, -3, 3, 50, -3, 3);
+  TH2F* b_hJetImage_ph_n  = new TH2F("kin_hJetImage_ph_n", "Jet image ph n;#Delta#eta;#Delta#phi", 50, -3, 3, 50, -3, 3);
+  TH2F* b_hJetImage_ch_pt = new TH2F("kin_hJetImage_ch_pt", "Jet image ch pt;#Delta#eta;#Delta#phi", 50, -3, 3, 50, -3, 3);
+  TH2F* b_hJetImage_nh_pt = new TH2F("kin_hJetImage_nh_pt", "Jet image nh pt;#Delta#eta;#Delta#phi", 50, -3, 3, 50, -3, 3);
+  TH2F* b_hJetImage_ph_pt = new TH2F("kin_hJetImage_ph_pt", "Jet image ph pt;#Delta#eta;#Delta#phi", 50, -3, 3, 50, -3, 3);
   b_hJetImage_ch_n->SetDirectory(0);
   b_hJetImage_nh_n->SetDirectory(0);
   b_hJetImage_ph_n->SetDirectory(0);
@@ -192,12 +192,12 @@ void AnalyzeM3Delphes::Loop(const string modeStr, const string outFileName)
   tree->Branch("kin_hJetImage_nh_pt", "TH2F", b_hJetImage_nh_pt);
   tree->Branch("kin_hJetImage_ph_pt", "TH2F", b_hJetImage_ph_pt);
 
-  TH2F* hJetImage_ch_n  = new TH2F("hJetImage_ch_n", "Jet image ch n;#Delta#eta;#Delta#phi", 100, -10, 10, 100, -10, 10);
-  TH2F* hJetImage_nh_n  = new TH2F("hJetImage_nh_n", "Jet image nh n;#Delta#eta;#Delta#phi", 100, -10, 10, 100, -10, 10);
-  TH2F* hJetImage_ph_n  = new TH2F("hJetImage_ph_n", "Jet image ph n;#Delta#eta;#Delta#phi", 100, -10, 10, 100, -10, 10);
-  TH2F* hJetImage_ch_pt = new TH2F("hJetImage_ch_pt", "Jet image ch pt;#Delta#eta;#Delta#phi", 100, -10, 10, 100, -10, 10);
-  TH2F* hJetImage_nh_pt = new TH2F("hJetImage_nh_pt", "Jet image nh pt;#Delta#eta;#Delta#phi", 100, -10, 10, 100, -10, 10);
-  TH2F* hJetImage_ph_pt = new TH2F("hJetImage_ph_pt", "Jet image ph pt;#Delta#eta;#Delta#phi", 100, -10, 10, 100, -10, 10);
+  TH2F* hJetImage_ch_n  = new TH2F("hJetImage_ch_n", "Jet image ch n;#Delta#eta;#Delta#phi", 50, -3, 3, 50, -3, 3);
+  TH2F* hJetImage_nh_n  = new TH2F("hJetImage_nh_n", "Jet image nh n;#Delta#eta;#Delta#phi", 50, -3, 3, 50, -3, 3);
+  TH2F* hJetImage_ph_n  = new TH2F("hJetImage_ph_n", "Jet image ph n;#Delta#eta;#Delta#phi", 50, -3, 3, 50, -3, 3);
+  TH2F* hJetImage_ch_pt = new TH2F("hJetImage_ch_pt", "Jet image ch pt;#Delta#eta;#Delta#phi", 50, -3, 3, 50, -3, 3);
+  TH2F* hJetImage_nh_pt = new TH2F("hJetImage_nh_pt", "Jet image nh pt;#Delta#eta;#Delta#phi", 50, -3, 3, 50, -3, 3);
+  TH2F* hJetImage_ph_pt = new TH2F("hJetImage_ph_pt", "Jet image ph pt;#Delta#eta;#Delta#phi", 50, -3, 3, 50, -3, 3);
 
   if (fChain == 0) return;
 
@@ -422,8 +422,8 @@ void AnalyzeM3Delphes::Loop(const string modeStr, const string outFileName)
       const double phi0 = jets_phi[jetIdx];
 
       const double pt = subjets_pt[i];
-      const double eta = subjets_eta[i]-eta0;//b_kin_hadT_eta;
-      const double phi = subjets_phi[i]-phi0;//b_kin_hadT_dphi; // hadT_dphi is before the phi-rotation.
+      const double eta = subjets_eta[i]-b_kin_hadT_eta;
+      const double phi = subjets_phi[i]-b_kin_hadT_dphi; // hadT_dphi is before the phi-rotation.
       const int q = subjets_q[i];
       const int pid = subjets_pdgId[i];
 
@@ -433,7 +433,7 @@ void AnalyzeM3Delphes::Loop(const string modeStr, const string outFileName)
         b_hJetImage_ch_n->Fill(eta, phi);
         b_hJetImage_ch_pt->Fill(eta, phi, pt);
       }
-      else if ( pid == 21 ) {
+      else if ( pid == 22 ) {
         hJetImage_ph_n->Fill(eta, phi);
         hJetImage_ph_pt->Fill(eta, phi, pt);
         b_hJetImage_ph_n->Fill(eta, phi);
