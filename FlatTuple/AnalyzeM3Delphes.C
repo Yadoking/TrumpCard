@@ -518,10 +518,10 @@ void AnalyzeM3Delphes::Loop(const string modeStr, const string outFileName)
   c = new TCanvas("cHW_m", "MW had", 500, 500); hHW_m->Draw();
   c = new TCanvas("cHW_dR", "dRW had", 500, 500); hHW_dR->Draw();
   c = new TCanvas("cHT_m", "MTop had", 500, 500); hHT_m->Draw();
-  c = new TCanvas("c_hJetImage_ch_n", "hJetImage_ch_n", 500, 500); hJetImage_ch_n->Draw();
-  c = new TCanvas("c_hJetImage_nh_n", "hJetImage_nh_n", 500, 500); hJetImage_nh_n->Draw();
-  c = new TCanvas("c_hJetImage_ph_n", "hJetImage_ph_n", 500, 500); hJetImage_ph_n->Draw();
-  c = new TCanvas("c_hJetImage_ch_pt", "hJetImage_ch_pt", 500, 500); hJetImage_ch_pt->Draw();
-  c = new TCanvas("c_hJetImage_nh_pt", "hJetImage_nh_pt", 500, 500); hJetImage_nh_pt->Draw();
-  c = new TCanvas("c_hJetImage_ph_pt", "hJetImage_ph_pt", 500, 500); hJetImage_ph_pt->Draw();
+  c = new TCanvas("c_hJetImage_ch_n", "hJetImage_ch_n", 500, 500); hJetImage_ch_n->Draw("COLZ");
+  c = new TCanvas("c_hJetImage_nh_n", "hJetImage_nh_n", 500, 500); hJetImage_nh_n->Draw("COLZ");
+  c = new TCanvas("c_hJetImage_ph_n", "hJetImage_ph_n", 500, 500); hJetImage_ph_n->Draw("COLZ");
+  c = new TCanvas("c_hJetImage_ch_pt", "hJetImage_ch_pt", 500, 500); hJetImage_ch_pt->Draw("COLZ");
+  c = new TCanvas("c_hJetImage_nh_pt", "hJetImage_nh_pt", 500, 500); hJetImage_nh_pt->Draw("COLZ");
+  c = new TCanvas("c_hJetImage_ph_pt", "hJetImage_ph_pt", 500, 500); hJetImage_ph_pt->Draw("COLZ");
 }
