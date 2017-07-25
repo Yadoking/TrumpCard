@@ -106,6 +106,14 @@ public :
      phi -= n2Pi*(2*TMath::Pi());
      if ( phi > TMath::Pi() ) phi -= 2*TMath::Pi();
    }
+
+   double deltaPhi(const double phi1, const double phi2)
+   {
+     double dphi = phi1 - phi2;
+     while ( dphi < -TMath::Pi() ) dphi += 2*TMath::Pi();
+     while ( dphi >  TMath::Pi() ) dphi -= 2*TMath::Pi();
+     return dphi;
+   }
 };
 
 #endif

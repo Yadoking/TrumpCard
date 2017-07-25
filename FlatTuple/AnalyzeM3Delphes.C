@@ -415,35 +415,43 @@ void AnalyzeM3Delphes::Loop(const string modeStr, const string outFileName)
     b_kin_hadB_CvsL = 0;
 
     // Fill the jet image
+    const double eta1 = jets_eta[bestIdxs[1]]-b_kin_hadT_eta, phi1 = deltaPhi(jets_phi[bestIdxs[1]], b_kin_hadT_dphi);
+    const double eta2 = jets_eta[bestIdxs[2]]-b_kin_hadT_eta, phi2 = deltaPhi(jets_phi[bestIdxs[2]], b_kin_hadT_dphi);
+    const double eta3 = jets_eta[bestIdxs[3]]-b_kin_hadT_eta, phi3 = deltaPhi(jets_phi[bestIdxs[3]], b_kin_hadT_dphi);
+    const double theta3 = atan2(phi3, eta3); // rotational symmetry. rotate trijet along the 3rd jet
+    const double y1 = -eta1*sin(theta3) + phi1*cos(theta3);
+    const double y2 = -eta2*sin(theta3) + phi2*cos(theta3);
+    const int flipSign = (y2 > y1 ? -1 : 1);
     for ( int i=0; i<subjets_n; ++i ) {
       const size_t jetIdx = subjets_jetIdx[i];
       if ( jetIdx != bestIdxs[1] and jetIdx != bestIdxs[2] and jetIdx != bestIdxs[3] ) continue;
-      const double eta0 = jets_eta[jetIdx];
-      const double phi0 = jets_phi[jetIdx];
+
+      const double eta = subjets_eta[i]-b_kin_hadT_eta; // translate particle to the trijet centre
+      const double phi = subjets_phi[i]-b_kin_hadT_dphi; // translate particle to the trijet centre
+      const double x =   eta*cos(theta3) + phi*sin(theta3); // Rotate particle by the 3rd jet orientation
+      const double y = (-eta*sin(theta3) + phi*cos(theta3))*flipSign; // Rotation ,but also the mirror symmetry
 
       const double pt = subjets_pt[i];
-      const double eta = subjets_eta[i]-b_kin_hadT_eta;
-      const double phi = subjets_phi[i]-b_kin_hadT_dphi; // hadT_dphi is before the phi-rotation.
       const int q = subjets_q[i];
       const int pid = subjets_pdgId[i];
 
       if ( q != 0 ) {
-        hJetImage_ch_n->Fill(eta, phi);
-        hJetImage_ch_pt->Fill(eta, phi, pt);
-        b_hJetImage_ch_n->Fill(eta, phi);
-        b_hJetImage_ch_pt->Fill(eta, phi, pt);
+        hJetImage_ch_n->Fill(x, y);
+        hJetImage_ch_pt->Fill(x, y, pt);
+        b_hJetImage_ch_n->Fill(x, y);
+        b_hJetImage_ch_pt->Fill(x, y, pt);
       }
       else if ( pid == 22 ) {
-        hJetImage_ph_n->Fill(eta, phi);
-        hJetImage_ph_pt->Fill(eta, phi, pt);
-        b_hJetImage_ph_n->Fill(eta, phi);
-        b_hJetImage_ph_pt->Fill(eta, phi, pt);
+        hJetImage_ph_n->Fill(x, y);
+        hJetImage_ph_pt->Fill(x, y, pt);
+        b_hJetImage_ph_n->Fill(x, y);
+        b_hJetImage_ph_pt->Fill(x, y, pt);
       }
       else {
-        hJetImage_nh_n->Fill(eta, phi);
-        hJetImage_nh_pt->Fill(eta, phi, pt);
-        b_hJetImage_nh_n->Fill(eta, phi);
-        b_hJetImage_nh_pt->Fill(eta, phi, pt);
+        hJetImage_nh_n->Fill(x, y);
+        hJetImage_nh_pt->Fill(x, y, pt);
+        b_hJetImage_nh_n->Fill(x, y);
+        b_hJetImage_nh_pt->Fill(x, y, pt);
       }
     }
 
