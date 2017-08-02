@@ -40,8 +40,7 @@ variables = {
 
 ## Start to setup the network
 batch_size = 100
-data_iter = RootIter.RootIter(datasets, variables, batch_size)
-data_iter.next()
+data_iter = RootIter.RootIter('tree', datasets, variables, batch_size)
 
 net = mx.sym.Variable('ft_0')
 #net = mx.sym.Variable('im_0')

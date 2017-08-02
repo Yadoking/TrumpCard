@@ -6,7 +6,7 @@ import numpy as np
 
 ## Implementation of root iterator
 class RootIter(mx.io.DataIter):
-    def __init__(self, datasets, variables, batch_size):
+    def __init__(self, treeName, datasets, variables, batch_size):
         self.batch_size = batch_size
         self.cur_batch = -1
 
@@ -17,7 +17,7 @@ class RootIter(mx.io.DataIter):
         self.datasets = {}
         for name in datasets:
             self.datasets[name] = {}
-            self.datasets[name]['chain'] = TChain('tree')
+            self.datasets[name]['chain'] = TChain(treeName)
             self.datasets[name]['entry'] = -1
             for fName in datasets[name]:
                 self.datasets[name]['chain'].Add(fName)
