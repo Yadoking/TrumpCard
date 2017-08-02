@@ -38,7 +38,7 @@ class RootIter(mx.io.DataIter):
                 self.im_size[varClass] = width, height
                 self._provide_data.append(mx.io.DataDesc(varClass, (self.batch_size, nChannel, width, height), dtype='float'))
 
-        self._provide_label = [mx.io.DataDesc("proc_label", (self.batch_size,), dtype='float')]
+        self._provide_label = [mx.io.DataDesc("out_label", (self.batch_size,), dtype='float')]
 
     def __iter__(self):
         return self

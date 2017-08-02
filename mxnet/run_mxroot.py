@@ -51,7 +51,7 @@ net = mx.sym.Activation(data=net, name='ac2', act_type="relu")
 net = mx.sym.FullyConnected(data=net, name='fc3', num_hidden=128)
 net = mx.sym.Activation(data=net, name='ac3', act_type="relu")
 
-net = mx.sym.SoftmaxOutput(data=net, name='proc')
+net = mx.sym.SoftmaxOutput(data=net, name='out')
 
 print(net.list_arguments())
 print(net.list_outputs())
@@ -59,7 +59,7 @@ print(net.list_outputs())
 import logging
 logging.basicConfig(level=logging.INFO)
 
-mod = mx.mod.Module(symbol=net, data_names=variables.keys(), label_names=['proc_label'])
+mod = mx.mod.Module(symbol=net, data_names=variables.keys(), label_names=['out_label'])
 mod.fit(data_iter,
         initializer=mx.init.Xavier(magnitude=2.),
         optimizer='sgd', optimizer_params=(('learning_rate', 0.1), ),
