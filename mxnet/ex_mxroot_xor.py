@@ -76,14 +76,15 @@ data_iter = RootIter.RootIter('tree', datasets, variables, batch_size)
 
 net = mx.sym.Variable('ft_0')
 #net = mx.sym.Variable('im_0')
+var_label = mx.sym.Variable('out_label')
 net = mx.sym.FullyConnected(data=net, name='fc1', num_hidden=128)
 net = mx.sym.Activation(data=net, name='ac1', act_type="relu")
-#net = mx.sym.FullyConnected(data=net, name='fc2', num_hidden=128)
-#net = mx.sym.Activation(data=net, name='ac2', act_type="relu")
+net = mx.sym.FullyConnected(data=net, name='fc2', num_hidden=128)
+net = mx.sym.Activation(data=net, name='ac2', act_type="relu")
 #net = mx.sym.FullyConnected(data=net, name='fc3', num_hidden=128)
 #net = mx.sym.Activation(data=net, name='ac3', act_type="relu")
 
-net = mx.sym.SoftmaxOutput(data=net, name='out')
+net = mx.sym.SoftmaxOutput(data=net, label=var_label, name='out')
 
 print(net.list_arguments())
 print(net.list_outputs())
@@ -94,8 +95,22 @@ logging.basicConfig(level=logging.INFO)
 mod = mx.mod.Module(symbol=net, data_names=variables.keys(), label_names=['out_label'])
 mod.fit(data_iter,
         initializer=mx.init.Xavier(magnitude=2.),
-        optimizer='sgd', optimizer_params=(('learning_rate', 0.1), ),
-        eval_metric='acc',  # report accuracy during training
+        optimizer='sgd', optimizer_params=(('learning_rate', 0.1),),
         batch_end_callback = mx.callback.Speedometer(batch_size, 10),
-        num_epoch=5)
+        num_epoch=5
+)
+#mod.bind(data_shapes=data_iter.provide_data, label_shapes=data_iter.provide_label)
+#mod.init_params(initializer=mx.init.Xavier(magnitude=2.))
+##mod.init_params(initializer=mx.init.Uniform(scale=.1))
+#mod.init_optimizer(optimizer='sgd', optimizer_params=(('learning_rate', 0.1), ))
+#metric = mx.metric.create('acc')
+#for epoch in range(5):
+#    data_iter.reset()
+#    metric.reset()
+#    for batch in data_iter:
+#        mod.forward(batch, is_train=True)
+#        mod.update_metric(metric, batch.label)
+#        mod.backward()
+#        mod.update()
+#    print 'epoch %d, training %s' % (epoch, metric.get())
 
