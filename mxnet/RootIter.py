@@ -46,6 +46,7 @@ class RootIter(mx.io.DataIter):
     def reset(self):
         if not hasattr(self, 'datasets'): return
 
+        self.cur_batch = -1
         for val in self.datasets.itervalues():
             val['entry'] = 0
             val['chain'].GetEntry(0)
