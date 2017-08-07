@@ -9,16 +9,15 @@ h = HistInfo()
 h.setLumi(1.0)
 
 xsec_ttbar = 356.4
-xsec_ttbb  = 356.4
-br_ttLJ = 0.40
-br_tcH = 1.00
+xsec_ttbb  = 13.93
+br_tcH = 0.01
 
 ## Set data
 #h.addData("ntuple/DataSingleEG.root")
 
 ## Set MC samples
-h.addSig("FCNC", "FCNC", "%s/delphes_FCNC.root" % basedir, kBlue, xsec_ttbar*br_tcH*br_ttLJ, 500000)
-h.addBkg("ttbb", "t#bar{t}+b#bar{b}", "%s/delphes_ttbb.root" % basedir, kRed, xsec_ttbb*br_ttLJ, 500000)
+h.addSig("FCNC", "FCNC Br=%g%%" % (br_tcH*100), "%s/delphes_FCNC.root" % basedir, kBlue, xsec_ttbar*br_tcH, 500000)
+h.addBkg("ttbb", "t#bar{t}+b#bar{b}", "%s/delphes_ttbb.root" % basedir, kRed, xsec_ttbb, 500000)
 
 ## Define plots
 h.add1D("met_pt", "met_pt", "MET p_{T} (GeV);Events / 5GeV", 40, 0, 200)
@@ -30,7 +29,7 @@ h.add1D("hadW12_m", "kin_hadW12_m", "Hadronic W_{12} mass (GeV);Events / 10GeV",
 ## Define cut flows
 h.addCutStep("step1", "lepton_pt>30 && abs(lepton_eta)<2.1", "lepton_pt,lepton_eta,jets_n,met_pt", "weight_gen")
 h.addCutStep("step2", "met_pt >= 30", "jets_n,bjets_n,met_pt", "weight_gen")
-h.addCutStep("step3", "jets_n >= 4", "jets_n,bjets_n,met_pt", "weight_gen")
+h.addCutStep("step3", "jets_n >= 4", "jets_n,bjets_n,met_pt,hadT_m,hadW12_m", "weight_gen")
 h.addCutStep("step4", "bjets_n >= 1", "jets_n,bjets_n,met_pt,hadT_m,hadW12_m", "weight_gen")
 h.addCutStep("step5", "bjets_n >= 2", "jets_n,bjets_n,met_pt,hadT_m,hadW12_m", "weight_gen")
 h.addCutStep("step6", "bjets_n >= 3", "jets_n,bjets_n,met_pt,hadT_m,hadW12_m", "weight_gen")
