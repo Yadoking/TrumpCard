@@ -32,8 +32,8 @@ h.addCutStep("step1", "lepton_pt>30 && abs(lepton_eta)<2.1", "lepton_pt,lepton_e
 h.addCutStep("step2", "met_pt >= 30", "jets_n,bjets_n,met_pt", "weight_gen")
 h.addCutStep("step3", "jets_n >= 4", "jets_n,bjets_n,met_pt", "weight_gen")
 h.addCutStep("step4", "bjets_n >= 1", "jets_n,bjets_n,met_pt,hadT_m,hadW12_m", "weight_gen")
-h.addCutStep("step4", "bjets_n >= 2", "jets_n,bjets_n,met_pt,hadT_m,hadW12_m", "weight_gen")
-h.addCutStep("step4", "bjets_n >= 3", "jets_n,bjets_n,met_pt,hadT_m,hadW12_m", "weight_gen")
+h.addCutStep("step5", "bjets_n >= 2", "jets_n,bjets_n,met_pt,hadT_m,hadW12_m", "weight_gen")
+h.addCutStep("step6", "bjets_n >= 3", "jets_n,bjets_n,met_pt,hadT_m,hadW12_m", "weight_gen")
 
 ## Produce histograms
 if not os.path.exists("hist.root"):
