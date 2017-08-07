@@ -4,10 +4,6 @@ import sys, os
 from collections import OrderedDict
 from ROOT import *
 from array import array
-from multiprocessing import Pool, cpu_count
-
-def Project(chain, hName, varExpr, weightExpr):
-    chain.Project(hName, varExpr, weightExpr)
 
 class HistInfo:
     def __init__(self, *args):
@@ -146,7 +142,6 @@ class HistMaker(HistInfo):
 
             ## Data
             if len(self.samples_RD['fNames']) > 0:
-                pool = Pool(cpu_count())
                 chain = self.samples_RD['chain']
                 print "@@@ Processing real data (%d events," % chain.GetEntries(),
                 if "RD" not in eventLists:
@@ -167,16 +162,10 @@ class HistMaker(HistInfo):
                     h = TH1D("h%s_%s" % (plotName, "RD"), "%s;%s" % ("Data", axisTitles), *hArgs)
                     hists.append(h)
                     print '@@@@ Projecting %s' % plotName
-                    #chain.Project(h.GetName(), varExpr, cut)
-                    #Project(chain, h.GetName(), varExpr, "1")
-                    pool.apply_async(Project, [chain, h.GetName(), varExpr, "1"])
-                pool.close()
-                pool.join()
-                #h.Write()
+                    chain.Project(h.GetName(), varExpr, "1")
 
             ## Signal
             print "@@@ Processing signal MC"
-            pool = Pool(cpu_count())
             for sInfo in self.samples_sig.values():
                 for ssName, ssInfo in sInfo['subsamples'].iteritems():
                     chain = ssInfo['chain']
@@ -198,15 +187,10 @@ class HistMaker(HistInfo):
                         h = TH1D("h%s_%s" % (plotName, ssName), "%s;%s" % (ssName, axisTitles), *hArgs)
                         hists.append(h)
                         print '@@@@ Projecting %s' % plotName
-                        #chain.Project(h.GetName(), varExpr, "(%s)*(1)" % weight)
-                        #Project(chain, h.GetName(), varExpr, weight)
-                        pool.apply_async(Project, [chain, h.GetName(), varExpr, weight])
-            pool.close()
-            pool.join()
+                        chain.Project(h.GetName(), varExpr, weight)
 
             ## Background
             print "@@@ Processing background MC"
-            pool = Pool(cpu_count())
             for sInfo in self.samples_bkg.values():
                 for ssName, ssInfo in sInfo['subsamples'].iteritems():
                     chain = ssInfo['chain']
@@ -228,13 +212,11 @@ class HistMaker(HistInfo):
                         h = TH1D("h%s_%s" % (plotName, ssName), "%s;%s" % (ssName, axisTitles), *hArgs)
                         hists.append(h)
                         print '@@@@ Projecting %s' % plotName
-                        #chain.Project(h.GetName(), varExpr, "(%s)*(1)" % weight)
-                        #Project(chain, h.GetName(), varExpr, weight)
-                        pool.apply_async(Project, [chain, h.GetName(), varExpr, weight])
-            pool.close()
-            pool.join()
+                        chain.Project(h.GetName(), varExpr, weight)
 
-            for h in hists: h.Write()
+            dout.cd()
+            for h in hists:
+                h.Write()
 
         for h in hCutFlows.values()+hCutFlowsRaw.values():
             fout.cd()
