@@ -107,11 +107,12 @@ class HistMaker(HistInfo):
 
         hCutFlows = {}
         hCutFlowsRaw = {}
-        self.samples_RD['chain'] = TChain(self.treeName)
-        for fName in self.samples_RD['fNames']:
-            self.samples_RD['chain'].Add(fName)
-        hCutFlows["RD"] = TH1D("hCutFlows_%s" % "RD", "Cut flow %s;;Events" % "RD", len(self.cutsteps), 0., len(self.cutsteps))
-        hCutFlowsRaw["RD"] = TH1D("hCutFlowsRaw_%s" % "RD", "Raw Cut flow %s;;Events" % "RD", len(self.cutsteps), 0., len(self.cutsteps))
+        if len(self.samples_RD['fNames']) > 0:
+            self.samples_RD['chain'] = TChain(self.treeName)
+            for fName in self.samples_RD['fNames']:
+                self.samples_RD['chain'].Add(fName)
+            hCutFlows["RD"] = TH1D("hCutFlows_%s" % "RD", "Cut flow %s;;Events" % "RD", len(self.cutsteps), 0., len(self.cutsteps))
+            hCutFlowsRaw["RD"] = TH1D("hCutFlowsRaw_%s" % "RD", "Raw Cut flow %s;;Events" % "RD", len(self.cutsteps), 0., len(self.cutsteps))
         for sInfo in self.samples_sig.values():
             for ssName, ssInfo in sInfo['subsamples'].iteritems():
                 hCutFlows[ssName] = TH1D("hCutFlows_%s" % ssName, "Cut flow %s;;Events" % ssName, len(self.cutsteps), 0., len(self.cutsteps))
@@ -139,26 +140,27 @@ class HistMaker(HistInfo):
             eventLists = {}
 
             ## Data
-            chain = self.samples_RD['chain']
-            print "@@@ Processing real data (%d events," % chain.GetEntries(),
-            if "RD" not in eventLists:
-                chain.SetEventList(0)
-                eventLists["RD"] = TEventList("EventList_RD", "EventList_RD")
-                nEvent = chain.Draw('>>EventList_RD', cut)
-            else:
-                chain.SetEventList(eventLists["RD"])
-                nEvent = chain.Draw('>>EventListTmp', cut)
-                eventLists["RD"] = eventListTmp.Clone("EventList_RD")
-                chain.SetEventList(eventLists["RD"])
-            print "%d entries selected)" % nEvent
-            hCutFlowsRaw["RD"].AddBinContent(i, nEvent)
-            for plotName in plots:
-                if plotName not in self.plots: continue
-                varExpr, axisTitles, hArgs = self.plots[plotName]
-                h = TH1D("h%s_%s" % (plotName, "RD"), "%s;%s" % ("Data", axisTitles), *hArgs)
-                print '@@@@ Projecting %s' % plotName
-                chain.Project(h.GetName(), varExpr, cut)
-                h.Write()
+            if len(self.samples_RD['fNames']) > 0:
+                chain = self.samples_RD['chain']
+                print "@@@ Processing real data (%d events," % chain.GetEntries(),
+                if "RD" not in eventLists:
+                    chain.SetEventList(0)
+                    eventLists["RD"] = TEventList("EventList_RD", "EventList_RD")
+                    nEvent = chain.Draw('>>EventList_RD', cut)
+                else:
+                    chain.SetEventList(eventLists["RD"])
+                    nEvent = chain.Draw('>>EventListTmp', cut)
+                    eventLists["RD"] = eventListTmp.Clone("EventList_RD")
+                    chain.SetEventList(eventLists["RD"])
+                print "%d entries selected)" % nEvent
+                hCutFlowsRaw["RD"].AddBinContent(i, nEvent)
+                for plotName in plots:
+                    if plotName not in self.plots: continue
+                    varExpr, axisTitles, hArgs = self.plots[plotName]
+                    h = TH1D("h%s_%s" % (plotName, "RD"), "%s;%s" % ("Data", axisTitles), *hArgs)
+                    print '@@@@ Projecting %s' % plotName
+                    chain.Project(h.GetName(), varExpr, cut)
+                    h.Write()
 
             ## Signal
             print "@@@ Processing signal MC"
@@ -222,6 +224,8 @@ class PlotMaker(HistInfo):
         aspectRatio = 1
         if 'aspectRatio' in option: aspectRatio = option['aspectRatio']
         innerWidth = 400
+        legEntryWidth = 0.25
+        nCol = 1
 
         gROOT.ProcessLine(".L ../FlatTuple/tdrstyle.C")
         gROOT.ProcessLine("setTDRStyle();")
@@ -272,6 +276,26 @@ class PlotMaker(HistInfo):
 
         gROOT.cd()
 
+        nLegItems = len(self.samples_bkg)+len(self.samples_sig)
+        if len(self.samples_RD['fNames']) > 0: nLegItems += 1
+        nRow = int(1.*nLegItems/nCol+0.5)
+        self.leg = TLegend(1-gStyle.GetPadRightMargin()-nCol*legEntryWidth, 1-gStyle.GetPadTopMargin()-0.1-nRow*0.02,
+                           1-gStyle.GetPadRightMargin()-0.05, 1-gStyle.GetPadTopMargin()-0.05)
+        self.leg.SetFillStyle(0)
+        self.leg.SetBorderSize(0)
+        for title, info in self.samples_bkg.iteritems():
+            entry = self.leg.AddEntry(0, title, "f")
+            entry.SetFillColor(info['color'])
+            entry.SetFillStyle(1111)
+        for title, info in self.samples_sig.iteritems():
+            entry = self.leg.AddEntry(0, title, "l")
+            entry.SetLineColor(info['color'])
+            entry.SetFillStyle(0)
+        if len(self.samples_RD['fNames']) > 0:
+            entry = self.leg.AddEntry(0, "Data", "lp")
+            entry.SetLineColor(kBlack)
+            entry.SetMarkerColor(kBlack)
+
         fin = TFile(fName)
         #if not os.path.isdir(prefix): os.makedirs(prefix)
 
@@ -283,6 +307,7 @@ class PlotMaker(HistInfo):
 
             for plotName0 in plots:
                 if plotName0 not in self.plots: continue
+                hFrame = None
                 h_dat, h_bkg, hs_sig, hs_bkg = None, None, None, None
                 xTitle, yTitle = None, None
                 maxY = 0
@@ -299,6 +324,8 @@ class PlotMaker(HistInfo):
                     if xTitle == None: xTitle = h.GetXaxis().GetTitle()
                     if yTitle == None: yTitle = h.GetYaxis().GetTitle()
                     maxY = max(maxY, h_dat.GetMaximum())
+                    if hFrame == None: hFrame = h.Clone()
+                    h_dat.AddBinContent(h_dat.GetNbinsX(), h_dat.GetBinContent(h_dat.GetNbinsX()+1))
 
                 for i, (sTitle, sInfo) in enumerate(self.samples_sig.iteritems()):
                     hout = None
@@ -315,8 +342,11 @@ class PlotMaker(HistInfo):
                             #hout.SetOption("hist")
                             hout.Reset()
                         if hs_sig == None:
-                            hs_sig = THStack("hs%s_%s_bkg" % (stepName, plotName), sTitle)
+                            hs_sig = THStack("hs%s_%s_sig" % (stepName, plotName), "%s sig" % plotName)
                         hout.Add(h, self.lumi*1000*ssInfo['xsec']/ssInfo['evt'])
+                    if hout == None: continue
+                    if hFrame == None: hFrame = h.Clone()
+                    hout.AddBinContent(hout.GetNbinsX(), hout.GetBinContent(hout.GetNbinsX()+1))
                     hs_sig.Add(hout)
                     maxY = max(maxY, hout.GetMaximum())
                     self.objs[stepName].append(hout)
@@ -342,8 +372,12 @@ class PlotMaker(HistInfo):
                             h_bkg.Reset()
                         hout.Add(h, self.lumi*1000*ssInfo['xsec']/ssInfo['evt'])
                         h_bkg.Add(h, self.lumi*1000*ssInfo['xsec']/ssInfo['evt'])
+                        hout.AddBinContent(hout.GetNbinsX(), hout.GetBinContent(hout.GetNbinsX()+1))
+                        h_bkg.AddBinContent(h_bkg.GetNbinsX(), h_bkg.GetBinContent(h_bkg.GetNbinsX()+1))
                         if hs_bkg == None:
-                            hs_bkg = THStack("hs%s_%s_bkg" % (stepName, plotName), sTitle)
+                            hs_bkg = THStack("hs%s_%s_bkg" % (stepName, plotName), "%s bkg" % plotName)
+                    if hout == None: continue
+                    if hFrame == None: hFrame = h.Clone()
                     if hs_bkg != None: hs_bkg.Add(hout)
                     self.objs[stepName].append(hout)
 
@@ -383,21 +417,23 @@ class PlotMaker(HistInfo):
                     pad1.SetBottomMargin(self.pad1_bottomMargin)
 
                 ## Draw dummy histogram to with proper y range
-                for h in [h_dat, hs_sig, hs_bkg]:
-                    if h == None: continue
-                    h.SetMaximum(1.2*maxY)
-                    h.Draw("axis")
-                    break
-                ## Draw all histograms
+                if xTitle == None: xTitle = ""
+                if yTitle == None: yTitle = ""
+                hFrame.Reset()
+                hFrame.SetMaximum(1.2*maxY)
+                hFrame.SetTitle("%s;%s;%s" % (h.GetTitle(), xTitle, yTitle))
+                hFrame.Draw("")
+                ### Draw all histograms
                 if hs_bkg != None: hs_bkg.Draw("hist,same")
                 if h_bkg  != None: h_bkg.Draw("hist,same")
                 if hs_sig != None: hs_sig.Draw("hist,nostack,same")
                 if h_dat  != None: h_dat.Draw("esame")
+                self.leg.Draw()
 
                 gPad.RedrawAxis()
                 c.Modified(True)
                 c.Update()
 
-                self.objs[stepName].extend([h_dat, h_bkg, hs_bkg, hs_sig])
+                self.objs[stepName].extend([hFrame, h_dat, h_bkg, hs_bkg, hs_sig])
                 self.canvases[stepName].append(c)
 
