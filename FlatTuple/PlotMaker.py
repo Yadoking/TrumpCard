@@ -176,7 +176,7 @@ class HistMaker(HistInfo):
                         chain.SetEventList(eventLists[ssName])
                         nEvent = chain.Draw('>>EventListTmp', cut)
                         eventLists[ssName] = eventListTmp.Clone("EventList_%s" % ssName)
-                        chain.SetEventList(eventLists[ssName])
+                    chain.SetEventList(eventLists[ssName])
                     print "%d entries selected)" % nEvent
                     hCutFlowsRaw[ssName].AddBinContent(i, nEvent)
                     for plotName in plots:
@@ -184,7 +184,7 @@ class HistMaker(HistInfo):
                         varExpr, axisTitles, hArgs = self.plots[plotName]
                         h = TH1D("h%s_%s" % (plotName, ssName), "%s;%s" % (ssName, axisTitles), *hArgs)
                         print '@@@@ Projecting %s' % plotName
-                        chain.Project(h.GetName(), varExpr, "(%s)*(%s)" % (weight, cut))
+                        chain.Project(h.GetName(), varExpr, "(%s)*(1)" % weight)
                         h.Write()
 
             ## Background
@@ -201,7 +201,7 @@ class HistMaker(HistInfo):
                         chain.SetEventList(eventLists[ssName])
                         nEvent = chain.Draw('>>EventListTmp', cut)
                         eventLists[ssName] = eventListTmp.Clone("EventList_%s" % ssName)
-                        chain.SetEventList(eventLists[ssName])
+                    chain.SetEventList(eventLists[ssName])
                     print "%d entries selected)" % nEvent
                     hCutFlowsRaw[ssName].AddBinContent(i, nEvent)
                     for plotName in plots:
@@ -209,7 +209,7 @@ class HistMaker(HistInfo):
                         varExpr, axisTitles, hArgs = self.plots[plotName]
                         h = TH1D("h%s_%s" % (plotName, ssName), "%s;%s" % (ssName, axisTitles), *hArgs)
                         print '@@@@ Projecting %s' % plotName
-                        chain.Project(h.GetName(), varExpr, "(%s)*(%s)" % (weight, cut))
+                        chain.Project(h.GetName(), varExpr, "(%s)*(1)" % weight)
                         h.Write()
 
         for h in hCutFlows.values()+hCutFlowsRaw.values():
