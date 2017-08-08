@@ -18,11 +18,16 @@ void makeFlatTuple()
 
     if ( !gSystem->OpenDirectory("tt") ) gSystem->mkdir("tt");
     if ( !gSystem->AccessPathName(foutName.c_str()) ) {
-      cout << "File " << foutName << " already exists. skip.\n";
+      cout << "!! File " << foutName << " already exists. skip.\n";
+      return 0;
+    }
+    TFile f(finName.c_str());
+    if ( gSystem->AccessPathName(finName.c_str()) or !f.IsOpen() ) {
+      cout << "!! File " << finName << " cannot be opened. skip.\n";
       return 0;
     }
 
-    makeFlatTuple(finName, foutName);
+    //makeFlatTuple(finName, foutName);
     return 0;
   };
 
@@ -30,7 +35,16 @@ void makeFlatTuple()
   gSystem->GetSysInfo(&sysInfo);
   cout << "@@ Working with " << sysInfo.fCpus << " CPUs\n";
   ROOT::TProcessExecutor workers(sysInfo.fCpus);
-  workers.Map(workItem, ROOT::TSeqI(37));
+  workers.Map(workItem, ROOT::TSeqI(100));
+
+  if ( gSystem->AccessPathName("ntuple_tch.root") ) {
+    cout << "@@ Processing tch...\n";
+    makeFlatTuple("/home/minerva1993/public/delphes_analysis/tch_run01.root", "ntuple_tch.root");
+  }
+  if ( gSystem->AccessPathName("ntuple_ttbb.root") ) {
+    cout << "@@ Processing ttbb...\n";
+    makeFlatTuple("/home/minerva1993/public/delphes_analysis/ttbb_run02.root", "ntuple_ttbb.root");
+  }
 }
 
 //------------------------------------------------------------------------------
