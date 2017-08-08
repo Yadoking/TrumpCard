@@ -27,7 +27,7 @@ void makeFlatTuple()
       return 0;
     }
 
-    //makeFlatTuple(finName, foutName);
+    makeFlatTuple(finName, foutName);
     return 0;
   };
 
