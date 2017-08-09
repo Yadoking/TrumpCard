@@ -8,7 +8,7 @@
 #include <TLorentzVector.h>
 #include <iostream>
 
-void AnalyzeM3Delphes::Loop(const string modeStr, const string outFileName, const string algoTypeName)
+void AnalyzeM3Delphes::Loop(const string modeStr, const string outFileName, string algoTypeName)
 {
 //   In a ROOT session, you can do:
 //      root> .L A.C
@@ -38,6 +38,8 @@ void AnalyzeM3Delphes::Loop(const string modeStr, const string outFileName, cons
   const double CSVT = 0.9535;
   enum class Mode { TT=0, FCNC };
   Mode mode = (modeStr == "FCNC") ? Mode::FCNC : Mode::TT;
+  std::transform(algoTypeName.begin(), algoTypeName.end(), algoTypeName.begin(),
+                 [](unsigned char c) -> unsigned char { return std::toupper(c); });
   enum class AlgoType { M3=0, dR };
   AlgoType algoType = (algoTypeName == "M3" ? AlgoType::M3 : AlgoType::dR);
 
