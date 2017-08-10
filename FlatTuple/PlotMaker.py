@@ -99,7 +99,7 @@ class HistMaker(HistInfo):
         HistInfo.__init__(self, *args)
         self.treeName = treeName
         self.prf = None
-        if doProof: self.prf = TProof.Open("")
+        if doProof: self.prf = TProof.Open("workers=8")
 
     def applyCutSteps(self, foutName):
         isBatch = gROOT.IsBatch()
@@ -140,9 +140,9 @@ class HistMaker(HistInfo):
             eventList2 = TEventList("eventList2", "eventList2")
 
             chain = self.samples_RD['chain']
-            print "@@@ Processing real data (%d events," % chain.GetEntries(),
+            print "@@@ Processing real data @@@"
             for i, (cutName, (cut, plots, weight)) in enumerate(self.cutsteps.iteritems()):
-                print "@@ Processing step%d" % (i+1)
+                print "@@ Processing %s " % cutName
                 cuts.append("(%s)" % cut)
                 cut = "&&".join(cuts)
                 for h in hCutFlows.values()+hCutFlowsRaw.values():
@@ -152,6 +152,7 @@ class HistMaker(HistInfo):
                 if dout == None: dout = fout.mkdir(cutName)
                 dout.cd()
 
+                chain.SetProof(False)
                 if eventList1 == None:
                     chain.SetEventList(0)
                     eventList1 = TEventList("eventList1", "eventList1")
@@ -162,71 +163,102 @@ class HistMaker(HistInfo):
                     eventList1 = None
                     eventList1 = eventList2.Clone("eventList1")
                     chain.SetEventList(eventList1)
-                print "%d entries selected)" % nEvent
                 hCutFlowsRaw["RD"].AddBinContent(i, nEvent)
 
+                chain.SetProof(True)
                 for plotName in plots:
                     if plotName not in self.plots: continue
                     varExpr, axisTitles, hArgs = self.plots[plotName]
                     h = TH1D("h%s_%s" % (plotName, "RD"), "%s;%s" % ("Data", axisTitles), *hArgs)
-                    hists.append(h)
                     print '@@@@ Projecting %s' % plotName
-                    chain.Project(h.GetName(), varExpr, "1")
+                    chain.Project(h.GetName(), varExpr, cut)
                     h.Write()
 
             eventList1, eventList2 = None, None
 
-        """
         ## Signal
         print "@@@ Processing signal MC"
         for sInfo in self.samples_sig.values():
             for ssName, ssInfo in sInfo['subsamples'].iteritems():
+                eventList1 = None
+                eventList2 = TEventList("eventList2", "eventList2")
+
                 chain = ssInfo['chain']
-                print "@@@ Processing %s (%d events," % (ssName, chain.GetEntries()),
-                if ssName not in eventLists:
-                    chain.SetEventList(0)
-                    eventLists[ssName] = TEventList("EventList_%s" % ssName, "EventList %s" % ssName)
-                    nEvent = chain.Draw('>>EventList_%s' % ssName, cut)
-                else:
-                    chain.SetEventList(eventLists[ssName])
-                    nEvent = chain.Draw('>>EventListTmp', cut)
-                    eventLists[ssName] = eventListTmp.Clone("EventList_%s" % ssName)
-                chain.SetEventList(eventLists[ssName])
-                print "%d entries selected)" % nEvent
-                hCutFlowsRaw[ssName].AddBinContent(i, nEvent)
-                for plotName in plots:
-                    if plotName not in self.plots: continue
-                    varExpr, axisTitles, hArgs = self.plots[plotName]
-                    h = TH1D("h%s_%s" % (plotName, ssName), "%s;%s" % (ssName, axisTitles), *hArgs)
-                    hists.append(h)
-                    print '@@@@ Projecting %s' % plotName
-                    chain.Project(h.GetName(), varExpr, weight)
+                print "@@@ Processing %s @@@" % ssName
+                for i, (cutName, (cut, plots, weight)) in enumerate(self.cutsteps.iteritems()):
+                    print "@@ Processing %s " % cutName
+                    cuts.append("(%s)" % cut)
+                    cut = "&&".join(cuts)
+                    for h in hCutFlows.values()+hCutFlowsRaw.values():
+                        h.GetXaxis().SetBinLabel(i+1, cutName)
+
+                    dout = fout.GetDirectory(cutName)
+                    if dout == None: dout = fout.mkdir(cutName)
+                    dout.cd()
+
+                    chain.SetProof(False)
+                    if eventList1 == None:
+                        chain.SetEventList(0)
+                        eventList1 = TEventList("eventList1", "eventList1")
+                        nEvent = chain.Draw('>>eventList1', cut)
+                    else:
+                        chain.SetEventList(eventList1)
+                        nEvent = chain.Draw('>>eventList2', cut)
+                        eventList1 = None
+                        eventList1 = eventList2.Clone("eventList1")
+                        chain.SetEventList(eventList1)
+                    hCutFlowsRaw[ssName].AddBinContent(i, nEvent)
+
+                    chain.SetProof(True)
+                    for plotName in plots:
+                        if plotName not in self.plots: continue
+                        varExpr, axisTitles, hArgs = self.plots[plotName]
+                        h = TH1D("h%s_%s" % (plotName, ssName), "%s;%s" % (ssName, axisTitles), *hArgs)
+                        print '@@@@ Projecting %s' % plotName
+                        chain.Project(h.GetName(), varExpr, weight)
+                        h.Write()
 
         ## Background
         print "@@@ Processing background MC"
         for sInfo in self.samples_bkg.values():
             for ssName, ssInfo in sInfo['subsamples'].iteritems():
+                eventList1 = None
+                eventList2 = TEventList("eventList2", "eventList2")
+
                 chain = ssInfo['chain']
-                print "@@@ Processing %s (%d events," % (ssName, chain.GetEntries()),
-                if ssName not in eventLists:
-                    chain.SetEventList(0)
-                    eventLists[ssName] = TEventList("EventList_%s" % ssName, "EventList %s" % ssName)
-                    nEvent = chain.Draw('>>EventList_%s' % ssName, cut)
-                else:
-                    chain.SetEventList(eventLists[ssName])
-                    nEvent = chain.Draw('>>EventListTmp', cut)
-                    eventLists[ssName] = eventListTmp.Clone("EventList_%s" % ssName)
-                chain.SetEventList(eventLists[ssName])
-                print "%d entries selected)" % nEvent
-                hCutFlowsRaw[ssName].AddBinContent(i, nEvent)
-                for plotName in plots:
-                    if plotName not in self.plots: continue
-                    varExpr, axisTitles, hArgs = self.plots[plotName]
-                    h = TH1D("h%s_%s" % (plotName, ssName), "%s;%s" % (ssName, axisTitles), *hArgs)
-                    hists.append(h)
-                    print '@@@@ Projecting %s' % plotName
-                    chain.Project(h.GetName(), varExpr, weight)
-        """
+                print "@@@ Processing %s @@@" % ssName
+                for i, (cutName, (cut, plots, weight)) in enumerate(self.cutsteps.iteritems()):
+                    print "@@ Processing %s" % cutName
+                    cuts.append("(%s)" % cut)
+                    cut = "&&".join(cuts)
+                    for h in hCutFlows.values()+hCutFlowsRaw.values():
+                        h.GetXaxis().SetBinLabel(i+1, cutName)
+
+                    dout = fout.GetDirectory(cutName)
+                    if dout == None: dout = fout.mkdir(cutName)
+                    dout.cd()
+
+                    chain.SetProof(False)
+                    if eventList1 == None:
+                        chain.SetEventList(0)
+                        eventList1 = TEventList("eventList1", "eventList1")
+                        nEvent = chain.Draw('>>eventList1', cut)
+                    else:
+                        chain.SetEventList(eventList1)
+                        nEvent = chain.Draw('>>eventList2', cut)
+                        eventList1 = None
+                        eventList1 = eventList2.Clone("eventList1")
+                        chain.SetEventList(eventList1)
+                    hCutFlowsRaw[ssName].AddBinContent(i, nEvent)
+
+                    chain.SetProof(True)
+                    for plotName in plots:
+                        if plotName not in self.plots: continue
+                        varExpr, axisTitles, hArgs = self.plots[plotName]
+                        h = TH1D("h%s_%s" % (plotName, ssName), "%s;%s" % (ssName, axisTitles), *hArgs)
+                        print '@@@@ Projecting %s' % plotName
+                        chain.Project(h.GetName(), varExpr, weight)
+                        h.Write()
 
         for h in hCutFlows.values()+hCutFlowsRaw.values():
             fout.cd()
