@@ -95,11 +95,14 @@ class HistInfo:
             self.samples_bkg[title]['subsamples'][name]['evt'] += nEvent
 
 class HistMaker(HistInfo):
-    def __init__(self, treeName, doProof, *args):
-        HistInfo.__init__(self, *args)
+    def __init__(self, hInfo, treeName, doProof):
+        HistInfo.__init__(self, hInfo)
         self.treeName = treeName
-        self.prf = None
-        if doProof: self.prf = TProof.Open("workers=16")
+        self.doEventList = True
+        self.doProof = doProof
+        if self.doProof:
+            self.prf = TProof.Open("workers=16")
+            self.doEventList = False
 
     def applyCutSteps(self, foutName):
         isBatch = gROOT.IsBatch()
@@ -112,7 +115,7 @@ class HistMaker(HistInfo):
         hCutFlowsRaw = {}
         if len(self.samples_RD['fNames']) > 0:
             self.samples_RD['chain'] = TChain(self.treeName)
-            if self.prf != None: self.samples_RD['chain'].SetProof()
+            if self.doProof: self.samples_RD['chain'].SetProof()
             for fName in self.samples_RD['fNames']:
                 self.samples_RD['chain'].Add(fName)
             hCutFlows["RD"] = TH1D("hCutFlows_%s" % "RD", "Cut flow %s;;Events" % "RD", len(self.cutsteps), 0., len(self.cutsteps))
@@ -122,134 +125,145 @@ class HistMaker(HistInfo):
                 hCutFlows[ssName] = TH1D("hCutFlows_%s" % ssName, "Cut flow %s;;Events" % ssName, len(self.cutsteps), 0., len(self.cutsteps))
                 hCutFlowsRaw[ssName] = TH1D("hCutFlowsRaw_%s" % ssName, "Raw Cut flow %s;;Events" % ssName, len(self.cutsteps), 0., len(self.cutsteps))
                 ssInfo['chain'] = TChain(self.treeName)
-                if self.prf != None: ssInfo['chain'].SetProof()
+                if self.doProof: ssInfo['chain'].SetProof()
                 for fName in ssInfo['fNames']: ssInfo['chain'].Add(fName)
         for sInfo in self.samples_bkg.values():
             for ssName, ssInfo in sInfo['subsamples'].iteritems():
                 hCutFlows[ssName] = TH1D("hCutFlows_%s" % ssName, "Cut flow %s;;Events" % ssName, len(self.cutsteps), 0., len(self.cutsteps))
                 hCutFlowsRaw[ssName] = TH1D("hCutFlowsRaw_%s" % ssName, "Raw Cut flow %s;;Events" % ssName, len(self.cutsteps), 0., len(self.cutsteps))
                 ssInfo['chain'] = TChain(self.treeName)
-                if self.prf != None: ssInfo['chain'].SetProof()
+                if self.doProof: ssInfo['chain'].SetProof()
                 for fName in ssInfo['fNames']: ssInfo['chain'].Add(fName)
 
         ## Data
         if len(self.samples_RD['fNames']) > 0:
-            gROOT.cd()
-            entryList1 = TEntryList("entryList1", "entryList1")
-            entryList2 = TEntryList("entryList2", "entryList2")
+            eventList = None
 
             chain = self.samples_RD['chain']
-            chain.SetEntryList(0)
+            if self.doEventList: chain.SetEventList(0)
             print "@@@ Processing real data @@@"
             cuts = []
             for i, (cutName, (cut, plots, weight)) in enumerate(self.cutsteps.iteritems()):
+                hists = []
                 print "@@ Processing %s " % cutName
-                cuts.append("(%s)" % cut)
-                cut = "&&".join(cuts)
                 for h in hCutFlows.values()+hCutFlowsRaw.values():
                     h.GetXaxis().SetBinLabel(i+1, cutName)
 
+                if not self.doEventList:
+                    cuts.append("(%s)" % cut)
+                    cut = "&&".join(cuts)
+                if self.doEventList:
+                    cuts = [cut]
+                    cut = "&&".join(cuts)
+                    gROOT.cd()
+                    chain.SetProof(False)
+                    nEvent = chain.Draw('>>eventListTmp', cut)
+                    eventList = gROOT.FindObject("eventListTmp")
+                    eventList.SetName("eventList")
+                    chain.SetEventList(eventList)
+                    hCutFlowsRaw["RD"].AddBinContent(i, nEvent)
+
                 dout = fout.GetDirectory(cutName)
                 if dout == None: dout = fout.mkdir(cutName)
-                dout.cd()
 
-                chain.SetProof(False)
-                nEvent = chain.Draw('>>entryList2', cut)
-                entryList1 = entryList2.Clone("entryList1")
-                chain.SetEntryList(entryList1)
-                hCutFlowsRaw["RD"].AddBinContent(i, nEvent)
-
-                if self.prf != None: chain.SetProof(True)
+                if self.doProof: chain.SetProof(True)
                 for plotName in plots:
                     if plotName not in self.plots: continue
                     varExpr, axisTitles, hArgs = self.plots[plotName]
+                    dout.cd()
                     h = TH1D("h%s_%s" % (plotName, "RD"), "%s;%s" % ("Data", axisTitles), *hArgs)
                     print '@@@@ Projecting %s' % plotName
-                    chain.Project(h.GetName(), varExpr)
-                    #chain.Project(h.GetName(), varExpr, cut)
+                    chain.Project(h.GetName(), varExpr, cut)
                     h.Write()
-
-            entryList1, entryList2 = None, None
+                    hists.append(h)
 
         ## Signal
         print "@@@ Processing signal MC"
         for sInfo in self.samples_sig.values():
             for ssName, ssInfo in sInfo['subsamples'].iteritems():
-                gROOT.cd()
-                entryList1 = TEntryList("entryList1", "entryList1")
-                entryList2 = TEntryList("entryList2", "entryList2")
+                eventList = None
 
                 chain = ssInfo['chain']
-                chain.SetEntryList(0)
+                if self.doEventList: chain.SetEventList(0)
                 print "@@@ Processing %s @@@" % ssName
                 cuts = []
                 for i, (cutName, (cut, plots, weight)) in enumerate(self.cutsteps.iteritems()):
+                    hists = []
                     print "@@ Processing %s " % cutName
-                    cuts.append("(%s)" % cut)
-                    cut = "&&".join(cuts)
                     for h in hCutFlows.values()+hCutFlowsRaw.values():
                         h.GetXaxis().SetBinLabel(i+1, cutName)
 
-                    chain.SetProof(False)
-                    nEvent = chain.Draw('>>entryList2', cut)
-                    entryList1 = entryList2.Clone("entryList1")
-                    chain.SetEntryList(entryList1)
-                    hCutFlowsRaw[ssName].AddBinContent(i, nEvent)
+                    if not self.doEventList:
+                        cuts.append("(%s)" % cut)
+                        cut = "&&".join(cuts)
+                    if self.doEventList:
+                        cuts = [cut]
+                        cut = "&&".join(cuts)
+                        gROOT.cd()
+                        chain.SetProof(False)
+                        nEvent = chain.Draw('>>eventListTmp', cut)
+                        eventList = gROOT.FindObject("eventListTmp")
+                        eventList.SetName("eventList")
+                        chain.SetEventList(eventList)
+                        hCutFlowsRaw[ssName].AddBinContent(i, nEvent)
 
                     dout = fout.GetDirectory(cutName)
                     if dout == None: dout = fout.mkdir(cutName)
 
-                    if self.prf != None: chain.SetProof(True)
+                    if self.doProof: chain.SetProof(True)
                     for plotName in plots:
                         if plotName not in self.plots: continue
                         varExpr, axisTitles, hArgs = self.plots[plotName]
                         dout.cd()
                         h = TH1D("h%s_%s" % (plotName, ssName), "%s;%s" % (ssName, axisTitles), *hArgs)
                         print '@@@@ Projecting %s' % plotName
-                        chain.Project(h.GetName(), varExpr, weight)
+                        chain.Project(h.GetName(), varExpr, "(%s)*(%s)" % (weight, cut))
                         h.Write()
-
-                entryList1, entryList2 = None, None
+                        hists.append(h)
 
         ## Background
         print "@@@ Processing background MC"
         for sInfo in self.samples_bkg.values():
             for ssName, ssInfo in sInfo['subsamples'].iteritems():
-                gROOT.cd()
-                entryList1 = TEntryList("entryList1", "entryList1")
-                entryList2 = TEntryList("entryList2", "entryList2")
+                eventList = None
 
                 chain = ssInfo['chain']
-                chain.SetEntryList(0)
+                if self.doEventList: chain.SetEventList(0)
                 print "@@@ Processing %s @@@" % ssName
                 cuts = []
                 for i, (cutName, (cut, plots, weight)) in enumerate(self.cutsteps.iteritems()):
+                    hists = []
                     print "@@ Processing %s" % cutName
-                    cuts.append("(%s)" % cut)
-                    cut = "&&".join(cuts)
                     for h in hCutFlows.values()+hCutFlowsRaw.values():
                         h.GetXaxis().SetBinLabel(i+1, cutName)
 
-                    chain.SetProof(False)
-                    nEvent = chain.Draw('>>entryList2', cut)
-                    entryList1 = entryList2.Clone("entryList1")
-                    chain.SetEntryList(entryList1)
-                    hCutFlowsRaw[ssName].AddBinContent(i, nEvent)
+                    if not self.doEventList:
+                        cuts.append("(%s)" % cut)
+                        cut = "&&".join(cuts)
+                    if self.doEventList:
+                        cuts = [cut]
+                        cut = "&&".join(cuts)
+                        gROOT.cd()
+                        chain.SetProof(False)
+                        nEvent = chain.Draw('>>eventListTmp', cut)
+                        eventList = gROOT.FindObject("eventListTmp")
+                        eventList.SetName("eventList")
+                        chain.SetEventList(eventList)
+                        hCutFlowsRaw[ssName].AddBinContent(i, nEvent)
 
                     dout = fout.GetDirectory(cutName)
                     if dout == None: dout = fout.mkdir(cutName)
 
-                    if self.prf != None: chain.SetProof(True)
+                    if self.doProof: chain.SetProof(True)
                     for plotName in plots:
                         if plotName not in self.plots: continue
                         varExpr, axisTitles, hArgs = self.plots[plotName]
                         dout.cd()
                         h = TH1D("h%s_%s" % (plotName, ssName), "%s;%s" % (ssName, axisTitles), *hArgs)
                         print '@@@@ Projecting %s' % plotName
-                        chain.Project(h.GetName(), varExpr, weight)
+                        chain.Project(h.GetName(), varExpr, "(%s)*(%s)" % (weight, cut))
                         h.Write()
-
-                entryList1, entryList2 = None, None
+                        hists.append(h)
 
         for h in hCutFlows.values()+hCutFlowsRaw.values():
             fout.cd()
@@ -258,7 +272,7 @@ class HistMaker(HistInfo):
         gROOT.SetBatch(isBatch)
 
 class PlotMaker(HistInfo):
-    def __init__(self, prefix, fName, hInfo, option):
+    def __init__(self, hInfo, prefix, fName, option):
         HistInfo.__init__(self, hInfo)
         doRatio = False
         if 'doRatio' in option: doRatio = option['doRatio']
@@ -266,7 +280,7 @@ class PlotMaker(HistInfo):
         if 'aspectRatio' in option: aspectRatio = option['aspectRatio']
         innerWidth = 400
         legEntryWidth = 0.25
-        nCol = 1
+        nCol = 2
 
         gROOT.ProcessLine(".L ../FlatTuple/tdrstyle.C")
         gROOT.ProcessLine("setTDRStyle();")
@@ -322,13 +336,14 @@ class PlotMaker(HistInfo):
         nRow = int(1.*nLegItems/nCol+0.5)
         self.leg = TLegend(1-gStyle.GetPadRightMargin()-nCol*legEntryWidth, 1-gStyle.GetPadTopMargin()-0.1-nRow*0.02,
                            1-gStyle.GetPadRightMargin()-0.05, 1-gStyle.GetPadTopMargin()-0.05)
+        self.leg.SetNColumns(nCol)
         self.leg.SetFillStyle(0)
         self.leg.SetBorderSize(0)
-        for title, info in self.samples_bkg.iteritems():
+        for title, info in reversed([x for x in self.samples_bkg.iteritems()]):
             entry = self.leg.AddEntry(0, title, "f")
             entry.SetFillColor(info['color'])
             entry.SetFillStyle(1111)
-        for title, info in self.samples_sig.iteritems():
+        for title, info in reversed([x for x in self.samples_sig.iteritems()]):
             entry = self.leg.AddEntry(0, title, "l")
             entry.SetLineColor(info['color'])
             entry.SetFillStyle(0)
