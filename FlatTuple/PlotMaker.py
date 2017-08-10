@@ -99,7 +99,7 @@ class HistMaker(HistInfo):
         HistInfo.__init__(self, *args)
         self.treeName = treeName
         self.prf = None
-        if doProof: self.prf = TProof.Open("workers=8")
+        if doProof: self.prf = TProof.Open("workers=16")
 
     def applyCutSteps(self, foutName):
         isBatch = gROOT.IsBatch()
@@ -136,8 +136,8 @@ class HistMaker(HistInfo):
 
         ## Data
         if len(self.samples_RD['fNames']) > 0:
-            eventList1 = None
-            eventList2 = TEventList("eventList2", "eventList2")
+            #eventList1 = None
+            #eventList2 = TEventList("eventList2", "eventList2")
 
             chain = self.samples_RD['chain']
             print "@@@ Processing real data @@@"
@@ -153,17 +153,17 @@ class HistMaker(HistInfo):
                 dout.cd()
 
                 chain.SetProof(False)
-                if eventList1 == None:
-                    chain.SetEventList(0)
-                    eventList1 = TEventList("eventList1", "eventList1")
-                    nEvent = chain.Draw('>>eventList1', cut)
-                else:
-                    chain.SetEventList(eventList1)
-                    nEvent = chain.Draw('>>eventList2', cut)
-                    eventList1 = None
-                    eventList1 = eventList2.Clone("eventList1")
-                    chain.SetEventList(eventList1)
-                hCutFlowsRaw["RD"].AddBinContent(i, nEvent)
+                #if eventList1 == None:
+                #    chain.SetEventList(0)
+                #    eventList1 = TEventList("eventList1", "eventList1")
+                #    nEvent = chain.Draw('>>eventList1', cut)
+                #else:
+                #    chain.SetEventList(eventList1)
+                #    nEvent = chain.Draw('>>eventList2', cut)
+                #    eventList1 = None
+                #    eventList1 = eventList2.Clone("eventList1")
+                #    chain.SetEventList(eventList1)
+                #hCutFlowsRaw["RD"].AddBinContent(i, nEvent)
 
                 chain.SetProof(True)
                 for plotName in plots:
@@ -174,14 +174,14 @@ class HistMaker(HistInfo):
                     chain.Project(h.GetName(), varExpr, cut)
                     h.Write()
 
-            eventList1, eventList2 = None, None
+            #eventList1, eventList2 = None, None
 
         ## Signal
         print "@@@ Processing signal MC"
         for sInfo in self.samples_sig.values():
             for ssName, ssInfo in sInfo['subsamples'].iteritems():
-                eventList1 = None
-                eventList2 = TEventList("eventList2", "eventList2")
+                #eventList1 = None
+                #eventList2 = TEventList("eventList2", "eventList2")
 
                 chain = ssInfo['chain']
                 print "@@@ Processing %s @@@" % ssName
@@ -197,17 +197,17 @@ class HistMaker(HistInfo):
                     dout.cd()
 
                     chain.SetProof(False)
-                    if eventList1 == None:
-                        chain.SetEventList(0)
-                        eventList1 = TEventList("eventList1", "eventList1")
-                        nEvent = chain.Draw('>>eventList1', cut)
-                    else:
-                        chain.SetEventList(eventList1)
-                        nEvent = chain.Draw('>>eventList2', cut)
-                        eventList1 = None
-                        eventList1 = eventList2.Clone("eventList1")
-                        chain.SetEventList(eventList1)
-                    hCutFlowsRaw[ssName].AddBinContent(i, nEvent)
+                    #if eventList1 == None:
+                    #    chain.SetEventList(0)
+                    #    eventList1 = TEventList("eventList1", "eventList1")
+                    #    nEvent = chain.Draw('>>eventList1', cut)
+                    #else:
+                    #    chain.SetEventList(eventList1)
+                    #    nEvent = chain.Draw('>>eventList2', cut)
+                    #    eventList1 = None
+                    #    eventList1 = eventList2.Clone("eventList1")
+                    #    chain.SetEventList(eventList1)
+                    #hCutFlowsRaw[ssName].AddBinContent(i, nEvent)
 
                     chain.SetProof(True)
                     for plotName in plots:
@@ -218,12 +218,14 @@ class HistMaker(HistInfo):
                         chain.Project(h.GetName(), varExpr, weight)
                         h.Write()
 
+                #eventList1, eventList2 = None, None
+
         ## Background
         print "@@@ Processing background MC"
         for sInfo in self.samples_bkg.values():
             for ssName, ssInfo in sInfo['subsamples'].iteritems():
-                eventList1 = None
-                eventList2 = TEventList("eventList2", "eventList2")
+                #eventList1 = None
+                #eventList2 = TEventList("eventList2", "eventList2")
 
                 chain = ssInfo['chain']
                 print "@@@ Processing %s @@@" % ssName
@@ -239,17 +241,17 @@ class HistMaker(HistInfo):
                     dout.cd()
 
                     chain.SetProof(False)
-                    if eventList1 == None:
-                        chain.SetEventList(0)
-                        eventList1 = TEventList("eventList1", "eventList1")
-                        nEvent = chain.Draw('>>eventList1', cut)
-                    else:
-                        chain.SetEventList(eventList1)
-                        nEvent = chain.Draw('>>eventList2', cut)
-                        eventList1 = None
-                        eventList1 = eventList2.Clone("eventList1")
-                        chain.SetEventList(eventList1)
-                    hCutFlowsRaw[ssName].AddBinContent(i, nEvent)
+                    #if eventList1 == None:
+                    #    chain.SetEventList(0)
+                    #    eventList1 = TEventList("eventList1", "eventList1")
+                    #    nEvent = chain.Draw('>>eventList1', cut)
+                    #else:
+                    #    chain.SetEventList(eventList1)
+                    #    nEvent = chain.Draw('>>eventList2', cut)
+                    #    eventList1 = None
+                    #    eventList1 = eventList2.Clone("eventList1")
+                    #    chain.SetEventList(eventList1)
+                    #hCutFlowsRaw[ssName].AddBinContent(i, nEvent)
 
                     chain.SetProof(True)
                     for plotName in plots:
@@ -259,6 +261,8 @@ class HistMaker(HistInfo):
                         print '@@@@ Projecting %s' % plotName
                         chain.Project(h.GetName(), varExpr, weight)
                         h.Write()
+
+                #eventList1, eventList2 = None, None
 
         for h in hCutFlows.values()+hCutFlowsRaw.values():
             fout.cd()
