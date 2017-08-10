@@ -95,11 +95,16 @@ class HistInfo:
             self.samples_bkg[title]['subsamples'][name]['evt'] += nEvent
 
 class HistMaker(HistInfo):
-    def __init__(self, treeName, *args):
+    def __init__(self, treeName, doProof, *args):
         HistInfo.__init__(self, *args)
         self.treeName = treeName
+        self.prf = None
+        if doProof: self.prf = TProof.Open("")
 
     def applyCutSteps(self, foutName):
+        isBatch = gROOT.IsBatch()
+        gROOT.SetBatch(True)
+
         cuts = []
 
         fout = TFile(foutName, "recreate")
@@ -109,6 +114,7 @@ class HistMaker(HistInfo):
         hCutFlowsRaw = {}
         if len(self.samples_RD['fNames']) > 0:
             self.samples_RD['chain'] = TChain(self.treeName)
+            if self.prf != None: self.samples_RD['chain'].SetProof()
             for fName in self.samples_RD['fNames']:
                 self.samples_RD['chain'].Add(fName)
             hCutFlows["RD"] = TH1D("hCutFlows_%s" % "RD", "Cut flow %s;;Events" % "RD", len(self.cutsteps), 0., len(self.cutsteps))
@@ -118,12 +124,14 @@ class HistMaker(HistInfo):
                 hCutFlows[ssName] = TH1D("hCutFlows_%s" % ssName, "Cut flow %s;;Events" % ssName, len(self.cutsteps), 0., len(self.cutsteps))
                 hCutFlowsRaw[ssName] = TH1D("hCutFlowsRaw_%s" % ssName, "Raw Cut flow %s;;Events" % ssName, len(self.cutsteps), 0., len(self.cutsteps))
                 ssInfo['chain'] = TChain(self.treeName)
+                if self.prf != None: ssInfo['chain'].SetProof()
                 for fName in ssInfo['fNames']: ssInfo['chain'].Add(fName)
         for sInfo in self.samples_bkg.values():
             for ssName, ssInfo in sInfo['subsamples'].iteritems():
                 hCutFlows[ssName] = TH1D("hCutFlows_%s" % ssName, "Cut flow %s;;Events" % ssName, len(self.cutsteps), 0., len(self.cutsteps))
                 hCutFlowsRaw[ssName] = TH1D("hCutFlowsRaw_%s" % ssName, "Raw Cut flow %s;;Events" % ssName, len(self.cutsteps), 0., len(self.cutsteps))
                 ssInfo['chain'] = TChain(self.treeName)
+                if self.prf != None: ssInfo['chain'].SetProof()
                 for fName in ssInfo['fNames']: ssInfo['chain'].Add(fName)
 
         eventListTmp = TEventList("EventListTmp", "EventListTmp")
@@ -221,6 +229,8 @@ class HistMaker(HistInfo):
         for h in hCutFlows.values()+hCutFlowsRaw.values():
             fout.cd()
             h.Write()
+
+        gROOT.SetBatch(isBatch)
 
 class PlotMaker(HistInfo):
     def __init__(self, prefix, fName, hInfo, option):
