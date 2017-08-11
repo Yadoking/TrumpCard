@@ -3,15 +3,17 @@
 R__LOAD_LIBRARY(AnalyzeM3HYTuple.C+)
 R__LOAD_LIBRARY(AnalyzeM3Delphes.C+)
 
-const string mode = "FCNC";
+const char* mode = "FCNC";
 //const string mode = "tt";
+const char* algo = "m3";
+//const char* algo = "deltaR";
 
 void run_CMSM3();
 void run_DelphesM3();
 
 void run_M3()
 {
-  run_CMSM3();
+  //run_CMSM3();
   run_DelphesM3();
 }
 
@@ -29,8 +31,8 @@ void run_CMSM3()
   AnalyzeM3HYTuple tFCNC(&chainFCNC);
   AnalyzeM3HYTuple tTTBB(&chainTTBB);
 
-  tFCNC.Loop(mode, "m3/cmsTuple_FCNC.root");
-  tTTBB.Loop(mode, "m3/cmsTuple_ttbb.root");
+  tFCNC.Loop(mode, Form("%s/cmsTuple_FCNC.root", algo), algo);
+  tTTBB.Loop(mode, Form("%s/cmsTuple_ttbb.root", algo), algo);
 }
 
 void run_DelphesM3()
@@ -39,11 +41,11 @@ void run_DelphesM3()
   chainFCNC.Add("../Delphes2Flat/ntuple_tch.root");
 
   TChain chainTTBB("tree");
-  chainTTBB.Add("../Delphes2Flat/ntuple_ttbb.root");
+  chainTTBB.Add("../Delphes2Flat/ntuple_tt.root");
 
   AnalyzeM3Delphes tFCNC(&chainFCNC);
   AnalyzeM3Delphes tTTBB(&chainTTBB);
 
-  tFCNC.Loop(mode, "m3/delphes_FCNC.root");
-  tTTBB.Loop(mode, "m3/delphes_ttbb.root");
+  tFCNC.Loop(mode, Form("%s/delphes_FCNC.root", algo), algo);
+  tTTBB.Loop(mode, Form("%s/delphes_tt.root", algo), algo);
 }

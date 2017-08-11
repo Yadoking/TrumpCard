@@ -8,7 +8,7 @@
 #include <TLorentzVector.h>
 #include <iostream>
 
-void AnalyzeM3Delphes::Loop(const string modeStr, const string outFileName)
+void AnalyzeM3Delphes::Loop(const string modeStr, const string outFileName, string algoTypeName)
 {
 //   In a ROOT session, you can do:
 //      root> .L A.C
@@ -38,9 +38,10 @@ void AnalyzeM3Delphes::Loop(const string modeStr, const string outFileName)
   const double CSVT = 0.9535;
   enum class Mode { TT=0, FCNC };
   Mode mode = (modeStr == "FCNC") ? Mode::FCNC : Mode::TT;
+  std::transform(algoTypeName.begin(), algoTypeName.end(), algoTypeName.begin(),
+                 [](unsigned char c) -> unsigned char { return std::toupper(c); });
   enum class AlgoType { M3=0, dR };
-  AlgoType algoType = AlgoType::M3;
-  //AlgoType algoType = AlgoType::dR;
+  AlgoType algoType = (algoTypeName == "M3" ? AlgoType::M3 : AlgoType::dR);
 
   TFile* fout = new TFile(outFileName.c_str(), "recreate");
   TTree* tree = new TTree("tree", "tree");
@@ -81,12 +82,12 @@ void AnalyzeM3Delphes::Loop(const string modeStr, const string outFileName)
   float b_kin_addJetsByPt_m, b_kin_addJetsByPt_dR;
   float b_kin_addJetsByCSV_m, b_kin_addJetsByCSV_dR;
 
-  TH2F* b_hJetImage_ch_n  = new TH2F("kin_hJetImage_ch_n", "Jet image ch n;#Delta#eta;#Delta#phi", 50, -3, 3, 50, -3, 3);
-  TH2F* b_hJetImage_nh_n  = new TH2F("kin_hJetImage_nh_n", "Jet image nh n;#Delta#eta;#Delta#phi", 50, -3, 3, 50, -3, 3);
-  TH2F* b_hJetImage_ph_n  = new TH2F("kin_hJetImage_ph_n", "Jet image ph n;#Delta#eta;#Delta#phi", 50, -3, 3, 50, -3, 3);
-  TH2F* b_hJetImage_ch_pt = new TH2F("kin_hJetImage_ch_pt", "Jet image ch pt;#Delta#eta;#Delta#phi", 50, -3, 3, 50, -3, 3);
-  TH2F* b_hJetImage_nh_pt = new TH2F("kin_hJetImage_nh_pt", "Jet image nh pt;#Delta#eta;#Delta#phi", 50, -3, 3, 50, -3, 3);
-  TH2F* b_hJetImage_ph_pt = new TH2F("kin_hJetImage_ph_pt", "Jet image ph pt;#Delta#eta;#Delta#phi", 50, -3, 3, 50, -3, 3);
+  TH2F* b_hJetImage_ch_n  = new TH2F("kin_hJetImage_ch_n", "Jet image ch n;#Delta#eta;#Delta#phi", 50, -2, 2, 50, -2, 2);
+  TH2F* b_hJetImage_nh_n  = new TH2F("kin_hJetImage_nh_n", "Jet image nh n;#Delta#eta;#Delta#phi", 50, -2, 2, 50, -2, 2);
+  TH2F* b_hJetImage_ph_n  = new TH2F("kin_hJetImage_ph_n", "Jet image ph n;#Delta#eta;#Delta#phi", 50, -2, 2, 50, -2, 2);
+  TH2F* b_hJetImage_ch_pt = new TH2F("kin_hJetImage_ch_pt", "Jet image ch pt;#Delta#eta;#Delta#phi", 50, -2, 2, 50, -2, 2);
+  TH2F* b_hJetImage_nh_pt = new TH2F("kin_hJetImage_nh_pt", "Jet image nh pt;#Delta#eta;#Delta#phi", 50, -2, 2, 50, -2, 2);
+  TH2F* b_hJetImage_ph_pt = new TH2F("kin_hJetImage_ph_pt", "Jet image ph pt;#Delta#eta;#Delta#phi", 50, -2, 2, 50, -2, 2);
   b_hJetImage_ch_n->SetDirectory(0);
   b_hJetImage_nh_n->SetDirectory(0);
   b_hJetImage_ph_n->SetDirectory(0);
@@ -192,12 +193,12 @@ void AnalyzeM3Delphes::Loop(const string modeStr, const string outFileName)
   tree->Branch("kin_hJetImage_nh_pt", "TH2F", b_hJetImage_nh_pt);
   tree->Branch("kin_hJetImage_ph_pt", "TH2F", b_hJetImage_ph_pt);
 
-  TH2F* hJetImage_ch_n  = new TH2F("hJetImage_ch_n", "Jet image ch n;#Delta#eta;#Delta#phi", 50, -3, 3, 50, -3, 3);
-  TH2F* hJetImage_nh_n  = new TH2F("hJetImage_nh_n", "Jet image nh n;#Delta#eta;#Delta#phi", 50, -3, 3, 50, -3, 3);
-  TH2F* hJetImage_ph_n  = new TH2F("hJetImage_ph_n", "Jet image ph n;#Delta#eta;#Delta#phi", 50, -3, 3, 50, -3, 3);
-  TH2F* hJetImage_ch_pt = new TH2F("hJetImage_ch_pt", "Jet image ch pt;#Delta#eta;#Delta#phi", 50, -3, 3, 50, -3, 3);
-  TH2F* hJetImage_nh_pt = new TH2F("hJetImage_nh_pt", "Jet image nh pt;#Delta#eta;#Delta#phi", 50, -3, 3, 50, -3, 3);
-  TH2F* hJetImage_ph_pt = new TH2F("hJetImage_ph_pt", "Jet image ph pt;#Delta#eta;#Delta#phi", 50, -3, 3, 50, -3, 3);
+  TH2F* hJetImage_ch_n  = new TH2F("hJetImage_ch_n", "Jet image ch n;#Delta#eta;#Delta#phi", 50, -2, 2, 50, -2, 2);
+  TH2F* hJetImage_nh_n  = new TH2F("hJetImage_nh_n", "Jet image nh n;#Delta#eta;#Delta#phi", 50, -2, 2, 50, -2, 2);
+  TH2F* hJetImage_ph_n  = new TH2F("hJetImage_ph_n", "Jet image ph n;#Delta#eta;#Delta#phi", 50, -2, 2, 50, -2, 2);
+  TH2F* hJetImage_ch_pt = new TH2F("hJetImage_ch_pt", "Jet image ch pt;#Delta#eta;#Delta#phi", 50, -2, 2, 50, -2, 2);
+  TH2F* hJetImage_nh_pt = new TH2F("hJetImage_nh_pt", "Jet image nh pt;#Delta#eta;#Delta#phi", 50, -2, 2, 50, -2, 2);
+  TH2F* hJetImage_ph_pt = new TH2F("hJetImage_ph_pt", "Jet image ph pt;#Delta#eta;#Delta#phi", 50, -2, 2, 50, -2, 2);
 
   if (fChain == 0) return;
 

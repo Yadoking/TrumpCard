@@ -4,16 +4,50 @@ R__LOAD_LIBRARY(libDelphes)
 #include "external/ExRootAnalysis/ExRootTreeReader.h"
 #include "TTree.h"
 #include "TFile.h"
+#include "TSystem.h"
 #endif
 
-//------------------------------------------------------------------------------
-const std::vector<std::string> inputFiles = {
-  "/home/minerva1993/public/delphes_analysis/tch_run01.root",
-  //"/home/minerva1993/public/delphes_analysis/ttbb_run02.root",
-};
-const std::string outputFile = "ntuple_tch.root";
-//const std::string outputFile = "ntuple_ttbb.root";
+void makeFlatTuple(const std::string finName, const std::string foutName);
+void makeFlatTuple()
+{
+  gSystem->Load("libDelphes");
 
+  auto workItem = [](UInt_t workerID) {
+    const std::string finName = Form("/data/users/jhgoh/MG5/tt_sm_LO/20170809_1/run_%02d.root", workerID+1);
+    const std::string foutName = Form("tt/ntuple_%02d.root", workerID+1);
+
+    if ( !gSystem->OpenDirectory("tt") ) gSystem->mkdir("tt");
+    if ( !gSystem->AccessPathName(foutName.c_str()) ) {
+      cout << "!! File " << foutName << " already exists. skip.\n";
+      return 0;
+    }
+    TFile f(finName.c_str());
+    if ( gSystem->AccessPathName(finName.c_str()) or !f.IsOpen() ) {
+      cout << "!! File " << finName << " cannot be opened. skip.\n";
+      return 0;
+    }
+
+    makeFlatTuple(finName, foutName);
+    return 0;
+  };
+
+  SysInfo_t sysInfo;
+  gSystem->GetSysInfo(&sysInfo);
+  cout << "@@ Working with " << sysInfo.fCpus << " CPUs\n";
+  ROOT::TProcessExecutor workers(sysInfo.fCpus);
+  workers.Map(workItem, ROOT::TSeqI(100));
+
+  if ( gSystem->AccessPathName("ntuple_tch.root") ) {
+    cout << "@@ Processing tch...\n";
+    makeFlatTuple("/home/minerva1993/public/delphes_analysis/tch_run01.root", "ntuple_tch.root");
+  }
+  if ( gSystem->AccessPathName("ntuple_ttbb.root") ) {
+    cout << "@@ Processing ttbb...\n";
+    makeFlatTuple("/home/minerva1993/public/delphes_analysis/ttbb_run02.root", "ntuple_ttbb.root");
+  }
+}
+
+//------------------------------------------------------------------------------
 int getLast(TClonesArray* branch, const int iGen)
 {
   const GenParticle* p = (const GenParticle*)branch->At(iGen);
@@ -26,12 +60,10 @@ int getLast(TClonesArray* branch, const int iGen)
   return iGen;
 }
 
-void makeFlatTuple()
+void makeFlatTuple(const std::string finName, const std::string foutName)
 {
-  gSystem->Load("libDelphes");
-
   // Prepare output tree
-  TFile* fout = TFile::Open(outputFile.c_str(), "recreate");
+  TFile* fout = TFile::Open(foutName.c_str(), "recreate");
   TTree* tree = new TTree("tree", "tree");
 
   unsigned short b_run = 1;
@@ -120,7 +152,7 @@ void makeFlatTuple()
 
   // Create chain of root trees
   TChain chain("Delphes");
-  for ( auto& inputFile : inputFiles ) chain.Add(inputFile.c_str());
+  chain.Add(finName.c_str());
 
   // Create object of class ExRootTreeReader
   ExRootTreeReader *treeReader = new ExRootTreeReader(&chain);

@@ -8,7 +8,7 @@
 #include <TLorentzVector.h>
 #include <iostream>
 
-void AnalyzeM3HYTuple::Loop(const string modeStr, const string outFileName)
+void AnalyzeM3HYTuple::Loop(const string modeStr, const string outFileName, string algoTypeName)
 {
   //   In a ROOT session, you can do:
   //      root> .L AnalyzeM3HYTuple.C
@@ -38,9 +38,10 @@ void AnalyzeM3HYTuple::Loop(const string modeStr, const string outFileName)
   const double CSVT = 0.9535;
   enum class Mode { TT=0, FCNC };
   Mode mode = (modeStr == "FCNC") ? Mode::FCNC : Mode::TT;
+  std::transform(algoTypeName.begin(), algoTypeName.end(), algoTypeName.begin(),
+                 [](unsigned char c) -> unsigned char { return std::toupper(c); });
   enum class AlgoType { M3=0, dR };
-  AlgoType algoType = AlgoType::M3;
-  //AlgoType algoType = AlgoType::dR;
+  AlgoType algoType = (algoTypeName == "M3" ? AlgoType::M3 : AlgoType::dR);
 
   TFile* fout = new TFile(outFileName.c_str(), "recreate");
   TTree* tree = new TTree("tree", "tree");
