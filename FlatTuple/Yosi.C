@@ -122,7 +122,7 @@ void Yosi::Loop()
 		int njets = 0;
 		int nbjets = 0;
 		vector<TLorentzVector> p4s; // b jets
-		vector<int> bjets; // not b jets
+		set<int> bjets; // not b jets
 
 		for (int i = 0; i < jets_n; ++i)
 		{
@@ -133,7 +133,7 @@ void Yosi::Loop()
       p4s.push_back(p4);
 			if (jets_bTag[i] == 1)
 			{
-        bjets.push_back(i);
+        bjets.insert(i);
 				++nbjets;
 				b_jet_pt = p4.Pt();
 				b_jet_eta = p4.Eta();
@@ -212,8 +212,8 @@ void Yosi::Loop()
 			const auto& Bjet1 = p4s.at(i);
 			for (int j = i+1; j < njets; ++j)
 			{
-        if ( std::find(bjets.begin(), bjets.end(), i) == bjets.end() or
-             std::find(bjets.begin(), bjets.end(), j) == bjets.end() ) continue;
+        if ( bjets.count(i) == 0 or bjets.count(j) == 0 ) continue; // Require BOTH b jets
+        //if ( bjets.count(i) == 0 and bjets.count(j) == 0 ) continue; // Require AT LEAST ONE b jet
 				const auto& Bjet2 = p4s.at(j);
 				const double dR = Bjet1.DeltaR(Bjet2);
 				const double PT = Bjet1.Pt() >= Bjet2.Pt() ? Bjet1.Pt() : Bjet2.Pt();
@@ -242,7 +242,7 @@ void Yosi::Loop()
 		const auto sumH = keepdR[0]+keepdR[1];
 		for (int i = 0; i < njets; ++i)
 		{
-      //if ( std::find(bjets.begin(), bjets.end(), i) != bjets.end() ) continue;
+      //if ( bjets.count(i) != 0 ) continue; // Require non-b tagged jet
 			const auto& Cjet = p4s.at(i);
       if ( Cjet.DeltaR(keepdR[0]) < 0.5 or Cjet.DeltaR(keepdR[1]) < 0.5 ) continue;
 			const double dR = Cjet.DeltaR(sumH);
