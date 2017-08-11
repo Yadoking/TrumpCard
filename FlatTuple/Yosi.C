@@ -33,13 +33,6 @@ void Yosi::Loop()
    TFile* fout = new TFile("temp.root", "recreate");
    TTree* tree = new TTree("namu", "namu");
 
-   TH1F* hdR = new TH1F("dR", "dR", 100, 0, 5);
-   TH1F* hdijetM = new TH1F("dijet_Mass", "dijet Mass", 300, 0, 300);
-   TH1F* hNJet = new TH1F("NJet", "NJet", 10, 0, 10);
-   TH1F* hBJetPt_H = new TH1F("BJetPt", "BJetPt", 150, 0, 300); 
-   TH1F* hm3 = new TH1F("M3", "M3", 1000, 0, 2000);
-
-
    int b_njet;
    int b_nbjet;
 
@@ -52,12 +45,22 @@ void Yosi::Loop()
    float b_jet_eta;
    float b_jet_phi;
    float b_jet_m;
-
-   float b_deltaR;
-   float b_diJetMass;
-   float b_maxJetPt;
    
-   float b_m3;
+   float b_m3_m;
+   float b_m3_m12;
+   float b_m3_m23;
+   float b_m3_m31;
+   float b_m3_dR12;
+   float b_m3_dR23;
+   float b_m3_dR31;
+
+   float b_dr_m;
+   float b_dr_m12;
+   float b_dr_m23;
+   float b_dr_m31;
+   float b_dr_dR12;
+   float b_dr_dR23;
+   float b_dr_dR31;
 
    tree->Branch("njet", &b_njet, "njet/I");
    tree->Branch("nbjet", &b_nbjet, "nbjet/I");
@@ -72,11 +75,22 @@ void Yosi::Loop()
    tree->Branch("jet_phi", &b_jet_phi, "jet_phi/F");
    tree->Branch("jet_m", &b_jet_m, "jet_m/F");
 
-   tree->Branch("deltaR", &b_deltaR, "deltaR/F");
-   tree->Branch("diJetMass", &b_diJetMass, "diJetMass/F");
-   tree->Branch("maxJetPt", &b_maxJetPt, "maxJetPt");
+   tree->Branch("M3_Massj1j2j3", &b_m3_m, "M3_Massj1j2j3/F");
+   tree->Branch("M3_Massj1j2", &b_m3_m12, "M3_Massj1j2/F");
+   tree->Branch("M3_Massj2j3", &b_m3_m23, "M3_Massj2j3/F");
+   tree->Branch("M3_Massj3j1", &b_m3_m31, "M3_Massj3j1/F");
+   tree->Branch("M3_dRj1j2", &b_m3_dR12, "M3_dRj1j2/F");
+   tree->Branch("M3_dRj2j3", &b_m3_dR23, "M3_dRj2j3/F");
+   tree->Branch("M3_dRj3j1", &b_m3_dR31, "M3_dRj3j1/F");
 
-   tree->Branch("M3", &b_m3, "M3/F");
+   tree->Branch("dR_Massj1j2j3", &b_dr_m, "dR_Massj1j2j3/F");
+   tree->Branch("dR_Massj1j2", &b_dr_m12, "dR_Massj1j2/F");
+   tree->Branch("dR_Massj2j3", &b_dr_m23, "dR_Massj2j3/F");
+   tree->Branch("dR_Massj3j1", &b_dr_m31, "dR_Massj3j1/F");
+   tree->Branch("dR_dRj1j2", &b_dr_dR12, "dR_dRj1j2/F");
+   tree->Branch("dR_dRj2j3", &b_dr_dR23, "dR_dRj2j3/F");
+   tree->Branch("dR_dRj3j1", &b_dr_dR31, "dR_dRj3j1/F");
+
 
    if (fChain == 0) return;
 
@@ -91,11 +105,9 @@ void Yosi::Loop()
       //
       //
       // Yosi!Programming Season!
-      
-      int njets = 0;
-      int nbjets = 0;
-      TLorentzVector leptonP4;
 
+      // Information about lepton (muon or electron)
+      TLorentzVector leptonP4;
       if ( muons_n >= 1 and muons_pt[0] > 30 and std::abs(muons_eta[0]) < 2.5)   leptonP4.SetPtEtaPhiM(muons_pt[0], muons_eta[0], muons_phi[0], muons_m[0]);
       else if ( electrons_n >= 1 and electrons_pt[0] and std::abs(electrons_eta[0]) < 2.5)   leptonP4.SetPtEtaPhiM(electrons_pt[0], electrons_eta[0], electrons_phi[0], electrons_m[0]);
       else continue;
@@ -105,7 +117,12 @@ void Yosi::Loop()
       b_lepton_phi = leptonP4.Phi();
       b_lepton_m = leptonP4.M();
 
-      vector<TLorentzVector> p4s;
+
+      // Information about jet
+      int njets = 0;
+      int nbjets = 0;
+      vector<TLorentzVector> p4s; // b jets
+      vector<TLorentzVector> notbs;
 
       for (int i = 0; i < jets_n; ++i)
       {
@@ -122,9 +139,17 @@ void Yosi::Loop()
             b_jet_phi = p4.Phi();
             b_jet_m = p4.M();
          }
+         else
+         {
+            TLorentzVector p4;
+            p4.SetPtEtaPhiM(jets_pt[i], jets_eta[i], jets_phi[i], jets_m[i]);
+            notbs.push_back(p4);
+         }
       }
       b_njet = njets;
       b_nbjet = nbjets;
+
+
       // m3 variable
       vector<TLorentzVector> keepm3;
       if (njets > 2)
@@ -148,11 +173,23 @@ void Yosi::Loop()
                }
             }
          }
-         b_m3 = (keepm3[0]+keepm3[1]+keepm3[2]).M();
+         b_m3_m = (keepm3[0]+keepm3[1]+keepm3[2]).M();
+         // sorting (j1 j2 : Higgs candidate)
+
+         b_m3_m12 = (keepm3[0]+keepm3[1]).M();
+         b_m3_m23 = (keepm3[1]+keepm3[2]).M();
+         b_m3_m31 = (keepm3[2]+keepm3[0]).M();
+         b_m3_dR12 = keepm3[0].DeltaR(keepm3[1]);
+         b_m3_dR23 = keepm3[1].DeltaR(keepm3[2]);
+         b_m3_dR31 = keepm3[2].DeltaR(keepm3[0]);
       }
-      hm3->Fill(b_m3);
+
+
       // minimum delta R
-      if (nbjets > 1)
+      vector<TLorentzVector> keepdR;
+      vector<TLorentzVector> keepdR3;
+      int nnotb = njets-nbjets;
+      if (nbjets > 1 && nnotb > 0)
       {
          double minDR = 999, minM = -1;
          double maxPt = 0;
@@ -164,44 +201,32 @@ void Yosi::Loop()
                const auto& Bjet2 = p4s.at(j);
                const double dR = Bjet1.DeltaR(Bjet2);
                const double PT = Bjet1.Pt() >= Bjet2.Pt() ? Bjet1.Pt() : Bjet2.Pt();
-               if ( dR < minDR ) {
-                 // using Lambda
-                 /*
-                 vector<pair<double, double> > mins;
-                 std::sort(mins.begin(), mins.end(),
-                 [&](  pair<double, double>a, pair<double, double> b)
-                 {
-                    return a.first < b.first;
-                 }
-                 );
-                 */
-
-                 minDR = dR;
-                 minM = (Bjet1+Bjet2).M();
-                 maxPt = PT;
+               if ( dR < minDR ) 
+               {
+                  minDR = dR;
+                  minM = (Bjet1+Bjet2).M();
+                  maxPt = PT;
+                  keepdR = { Bjet1, Bjet2 };
                }
             }
          }
-         b_deltaR = minDR;
-         b_diJetMass = minM;
-         b_maxJetPt = maxPt;
-
-	 hdR->Fill(minDR);
-	 hdijetM->Fill(minM);
-         hNJet->Fill(njets);
-         hBJetPt_H->Fill(maxPt);
+         minDR = 999;
+         const auto& sumH = keepdR[0]+keepdR[1];
+         for (int i = 0; i < nnotb; ++i)
+         {
+            const auto& Cjet = notbs.at(i);
+            const double dR = Cjet.DeltaR(sumH);
+            if ( dR < minDR )   keepdR3 = {keepdR[0], keepdR[1], Cjet};
+         }
+         b_dr_m = (keepdR3[0]+keepdR3[1]+keepdR3[2]).M();
+         b_dr_m12 = (keepdR3[0]+keepdR3[1]).M();
+         b_dr_m23 = (keepdR3[1]+keepdR3[2]).M();
+         b_dr_m31 = (keepdR3[2]+keepdR3[0]).M();
+         b_dr_dR12 = keepdR3[0].DeltaR(keepdR3[1]);
+         b_dr_dR23 = keepdR3[1].DeltaR(keepdR3[2]);
+         b_dr_dR31 = keepdR3[2].DeltaR(keepdR3[0]);
       }
       tree->Fill();
    }
    fout->Write();
-   /*
-   TCanvas* c = new TCanvas("cDr", "delta R", 500, 500);
-   hdR->Draw();
-   c = new TCanvas("cdiM", "dijet Mass", 500, 500);
-   hdijetM->Draw();
-   c = new TCanvas("cNJ", "N Jet", 500, 500);
-   hNJet->Draw();
-   c = new TCanvas("cPt", "Max Pt", 500, 500);
-   hBJetPt_H->Draw();
-   */
 }
