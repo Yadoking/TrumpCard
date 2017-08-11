@@ -2,6 +2,16 @@
 
 from ROOT import *
 from collections import OrderedDict
+import sys, os
+
+if len(sys.argv) < 2:
+    print "Usage: %s INPUTFILE.root" % sys.argv[0]
+    sys.exit(1)
+
+fName = sys.argv[1]
+if not os.path.exists(fName):
+    print "Cannot find input root file %s" % fName
+    sys.exit(2)
 
 gROOT.ProcessLine(".L ../FlatTuple/tdrstyle.C")
 gROOT.ProcessLine("setTDRStyle()")
@@ -11,7 +21,12 @@ gStyle.SetOptStat(0)
 grps = OrderedDict()
 colors = [kBlack, kBlue, kRed, kMagenta, kGreen+1]
 
-f = TFile("mva_cmsTuple_m3.root")
+try:
+    f = TFile(fName)
+except(e):
+    print "Input file %f is not valid root file" % fName
+    sys.exit(2)
+
 for dName in [key.GetName() for key in f.GetListOfKeys()]:
     dBase = f.Get(dName)
     for dName in [key.GetName() for key in dBase.GetListOfKeys()]:
