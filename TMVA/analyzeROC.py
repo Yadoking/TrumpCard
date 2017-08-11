@@ -35,6 +35,7 @@ for fName in sys.argv[1:]:
 
             grp = TGraph()
             grp.SetLineColor(colors[len(grps)-1])
+            grp.SetLineWidth(2)
             for b in range(hSigEff.GetNbinsX()):
                 mvaVal = hSigEff.GetXaxis().GetBinLowEdge(b+1)
                 x = hSigEff.GetBinContent(b+1)
