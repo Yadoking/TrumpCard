@@ -28,26 +28,35 @@ public :
    Float_t         met_pt;
    Float_t         met_phi;
    UShort_t        muons_n;
-   Float_t         muons_pt[3];   //[muons_n]
-   Float_t         muons_eta[3];   //[muons_n]
-   Float_t         muons_phi[3];   //[muons_n]
-   Float_t         muons_m[3];   //[muons_n]
-   Short_t         muons_q[3];   //[muons_n]
-   Float_t         muons_relIso[3];   //[muons_n]
+   Float_t         muons_pt[100];   //[muons_n]
+   Float_t         muons_eta[100];   //[muons_n]
+   Float_t         muons_phi[100];   //[muons_n]
+   Float_t         muons_m[100];   //[muons_n]
+   Short_t         muons_q[100];   //[muons_n]
+   Float_t         muons_relIso[100];   //[muons_n]
    UShort_t        electrons_n;
-   Float_t         electrons_pt[3];   //[electrons_n]
-   Float_t         electrons_eta[3];   //[electrons_n]
-   Float_t         electrons_phi[3];   //[electrons_n]
-   Float_t         electrons_m[3];   //[electrons_n]
-   Short_t         electrons_q[3];   //[electrons_n]
-   Float_t         electrons_relIso[3];   //[electrons_n]
+   Float_t         electrons_pt[100];   //[electrons_n]
+   Float_t         electrons_eta[100];   //[electrons_n]
+   Float_t         electrons_phi[100];   //[electrons_n]
+   Float_t         electrons_m[100];   //[electrons_n]
+   Short_t         electrons_q[100];   //[electrons_n]
+   Float_t         electrons_relIso[100];   //[electrons_n]
    UShort_t        jets_n;
-   Float_t         jets_pt[17];   //[jets_n]
-   Float_t         jets_eta[17];   //[jets_n]
-   Float_t         jets_phi[17];   //[jets_n]
-   Float_t         jets_m[17];   //[jets_n]
-   Short_t         jets_flav[17];   //[jets_n]
-   Float_t         jets_bTag[17];   //[jets_n]
+   Float_t         jets_pt[100];   //[jets_n]
+   Float_t         jets_eta[100];   //[jets_n]
+   Float_t         jets_phi[100];   //[jets_n]
+   Float_t         jets_m[100];   //[jets_n]
+   Short_t         jets_flav[100];   //[jets_n]
+   Float_t         jets_bTag[100];   //[jets_n]
+   UShort_t        gen_n;
+   Float_t         gen_pt[100];   //[gen_n]
+   Float_t         gen_eta[100];   //[gen_n]
+   Float_t         gen_phi[100];   //[gen_n]
+   Float_t         gen_m[100];   //[gen_n]
+   Short_t         gen_pdgId[100];   //[gen_n]
+   Short_t         gen_q3[100];   //[gen_n]
+   Short_t         gen_dau1[100];   //[gen_n]
+   Short_t         gen_dau2[100];   //[gen_n]
    UShort_t        subjets_n;
    Float_t         subjets_pt[1000];
    Float_t         subjets_eta[1000];
@@ -82,6 +91,15 @@ public :
    TBranch        *b_jets_m;   //!
    TBranch        *b_jets_flav;   //!
    TBranch        *b_jets_bTag;   //!
+   TBranch        *b_gen_n;   //!
+   TBranch        *b_gen_pt;   //!
+   TBranch        *b_gen_eta;   //!
+   TBranch        *b_gen_phi;   //!
+   TBranch        *b_gen_m;   //!
+   TBranch        *b_gen_pdgId;   //!
+   TBranch        *b_gen_q3;   //!
+   TBranch        *b_gen_dau1;   //!
+   TBranch        *b_gen_dau2;   //!
    TBranch        *b_subjets_n;
    TBranch        *b_subjets_pt;
    TBranch        *b_subjets_eta;
@@ -200,6 +218,15 @@ void AnalyzeM3Delphes::Init(TTree *tree)
    fChain->SetBranchAddress("jets_m", jets_m, &b_jets_m);
    fChain->SetBranchAddress("jets_flav", jets_flav, &b_jets_flav);
    fChain->SetBranchAddress("jets_bTag", jets_bTag, &b_jets_bTag);
+   fChain->SetBranchAddress("gen_n", &gen_n, &b_gen_n);
+   fChain->SetBranchAddress("gen_pt", gen_pt, &b_gen_pt);
+   fChain->SetBranchAddress("gen_eta", gen_eta, &b_gen_eta);
+   fChain->SetBranchAddress("gen_phi", gen_phi, &b_gen_phi);
+   fChain->SetBranchAddress("gen_m", gen_m, &b_gen_m);
+   fChain->SetBranchAddress("gen_pdgId", gen_pdgId, &b_gen_pdgId);
+   fChain->SetBranchAddress("gen_q3", gen_q3, &b_gen_q3);
+   fChain->SetBranchAddress("gen_dau1", gen_dau1, &b_gen_dau1);
+   fChain->SetBranchAddress("gen_dau2", gen_dau2, &b_gen_dau2);
    fChain->SetBranchAddress("subjets_n", &subjets_n, &b_subjets_n);
    fChain->SetBranchAddress("subjets_pt", &subjets_pt, &b_subjets_pt);
    fChain->SetBranchAddress("subjets_eta", &subjets_eta, &b_subjets_eta);
