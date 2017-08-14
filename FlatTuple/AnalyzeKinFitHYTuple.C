@@ -59,30 +59,30 @@ void AnalyzeKinFitHYTuple::Loop(const string modeStr, const string outFileName)
   float b_weight_gen;
   float b_lepton_pt, b_lepton_eta, b_lepton_phi;
   float b_met_pt, b_met_dphi;
-  float b_kin_chi2, b_kin_JES;
-  int b_kin_bjetcode;
-  float b_kin_lep_pt, b_kin_lep_eta, b_kin_lep_dphi;
-  float b_kin_nu_pt, b_kin_nu_eta, b_kin_nu_dphi;
-  float b_kin_lepB_pt, b_kin_lepB_eta, b_kin_lepB_dphi, b_kin_lepB_m;
-  float b_kin_lepW_pt, b_kin_lepW_eta, b_kin_lepW_dphi, b_kin_lepW_m;
-  float b_kin_lepT_pt, b_kin_lepT_eta, b_kin_lepT_dphi, b_kin_lepT_m;
-  float b_kin_hadJ1_pt, b_kin_hadJ1_eta, b_kin_hadJ1_dphi, b_kin_hadJ1_m;
-  float b_kin_hadJ2_pt, b_kin_hadJ2_eta, b_kin_hadJ2_dphi, b_kin_hadJ2_m;
-  float b_kin_hadB_pt, b_kin_hadB_eta, b_kin_hadB_dphi, b_kin_hadB_m;
-  float b_kin_hadW12_pt, b_kin_hadW12_eta, b_kin_hadW12_dphi, b_kin_hadW12_m, b_kin_hadW12_dR;
-  float b_kin_hadW23_pt, b_kin_hadW23_eta, b_kin_hadW23_dphi, b_kin_hadW23_m, b_kin_hadW23_dR;
-  float b_kin_hadW13_pt, b_kin_hadW13_eta, b_kin_hadW13_dphi, b_kin_hadW13_m, b_kin_hadW13_dR;
-  float b_kin_hadT_pt, b_kin_hadT_eta, b_kin_hadT_dphi, b_kin_hadT_m;
-  float b_kin_theta1, b_kin_theta2;
-  float b_kin_lepB_CSV, b_kin_hadB_CSV, b_kin_hadJ1_CSV, b_kin_hadJ2_CSV;
-  float b_kin_lepB_CvsB, b_kin_hadB_CvsB, b_kin_hadJ1_CvsB, b_kin_hadJ2_CvsB;
-  float b_kin_lepB_CvsL, b_kin_hadB_CvsL, b_kin_hadJ1_CvsL, b_kin_hadJ2_CvsL;
-  float b_kin_addJetByPt1_pt, b_kin_addJetByPt1_CSV;
-  float b_kin_addJetByPt2_pt, b_kin_addJetByPt2_CSV;
-  float b_kin_addJetByCSV1_pt, b_kin_addJetByCSV1_CSV;
-  float b_kin_addJetByCSV2_pt, b_kin_addJetByCSV2_CSV;
-  float b_kin_addJetsByPt_m, b_kin_addJetsByPt_dR;
-  float b_kin_addJetsByCSV_m, b_kin_addJetsByCSV_dR;
+  float b_chi2, b_JES;
+  int b_bjetcode;
+  float b_lep_pt, b_lep_eta, b_lep_dphi;
+  float b_nu_pt, b_nu_eta, b_nu_dphi;
+  float b_lepB_pt, b_lepB_eta, b_lepB_dphi, b_lepB_m;
+  float b_lepW_pt, b_lepW_eta, b_lepW_dphi, b_lepW_m;
+  float b_lepT_pt, b_lepT_eta, b_lepT_dphi, b_lepT_m;
+  float b_hadJ1_pt, b_hadJ1_eta, b_hadJ1_dphi, b_hadJ1_m;
+  float b_hadJ2_pt, b_hadJ2_eta, b_hadJ2_dphi, b_hadJ2_m;
+  float b_hadB_pt, b_hadB_eta, b_hadB_dphi, b_hadB_m;
+  float b_hadW12_pt, b_hadW12_eta, b_hadW12_dphi, b_hadW12_m, b_hadW12_dR;
+  float b_hadW23_pt, b_hadW23_eta, b_hadW23_dphi, b_hadW23_m, b_hadW23_dR;
+  float b_hadW13_pt, b_hadW13_eta, b_hadW13_dphi, b_hadW13_m, b_hadW13_dR;
+  float b_hadT_pt, b_hadT_eta, b_hadT_dphi, b_hadT_m;
+  float b_theta1, b_theta2;
+  float b_lepB_CSV, b_hadB_CSV, b_hadJ1_CSV, b_hadJ2_CSV;
+  float b_lepB_CvsB, b_hadB_CvsB, b_hadJ1_CvsB, b_hadJ2_CvsB;
+  float b_lepB_CvsL, b_hadB_CvsL, b_hadJ1_CvsL, b_hadJ2_CvsL;
+  float b_addJetByPt1_pt, b_addJetByPt1_CSV;
+  float b_addJetByPt2_pt, b_addJetByPt2_CSV;
+  float b_addJetByCSV1_pt, b_addJetByCSV1_CSV;
+  float b_addJetByCSV2_pt, b_addJetByCSV2_CSV;
+  float b_addJetsByPt_m, b_addJetsByPt_dR;
+  float b_addJetsByCSV_m, b_addJetsByCSV_dR;
 
   tree->Branch("run", &b_run, "run/I");
   tree->Branch("event", &b_event, "event/I");
@@ -96,92 +96,92 @@ void AnalyzeKinFitHYTuple::Loop(const string modeStr, const string outFileName)
 
   tree->Branch("jets_n", &b_jets_n, "jets_n/I");
   tree->Branch("bjets_n", &b_bjets_n, "bjets_n/I");
-  tree->Branch("kin_lepW_m", &b_kin_lepW_m, "kin_lepW_m/F");
-  tree->Branch("kin_lepT_m", &b_kin_lepT_m, "kin_lepT_m/F");
-  tree->Branch("kin_hadW12_m", &b_kin_hadW12_m, "kin_hadW12_m/F");
-  tree->Branch("kin_hadW23_m", &b_kin_hadW23_m, "kin_hadW23_m/F");
-  tree->Branch("kin_hadW13_m", &b_kin_hadW13_m, "kin_hadW13_m/F");
-  tree->Branch("kin_hadT_m", &b_kin_hadT_m, "kin_hadT_m/F");
+  tree->Branch("lepW_m", &b_lepW_m, "lepW_m/F");
+  tree->Branch("lepT_m", &b_lepT_m, "lepT_m/F");
+  tree->Branch("hadW12_m", &b_hadW12_m, "hadW12_m/F");
+  tree->Branch("hadW23_m", &b_hadW23_m, "hadW23_m/F");
+  tree->Branch("hadW13_m", &b_hadW13_m, "hadW13_m/F");
+  tree->Branch("hadT_m", &b_hadT_m, "hadT_m/F");
 
-  tree->Branch("kin_chi2", &b_kin_chi2, "kin_chi2/F");
-  tree->Branch("kin_JES", &b_kin_JES, "kin_JES/F");
-  tree->Branch("kin_bjetcode", &b_kin_bjetcode, "kin_bjetcode/I"); // b-jet contribution "code". Format=[nbjetInLepT][nbjetInHadT]
-  tree->Branch("kin_lep_pt", &b_kin_lep_pt, "kin_lep_pt/F");
-  tree->Branch("kin_lep_eta", &b_kin_lep_eta, "kin_lep_eta/F");
-  tree->Branch("kin_lep_dphi", &b_kin_lep_dphi, "kin_lep_dphi/F");
-  tree->Branch("kin_nu_pt", &b_kin_nu_pt, "kin_nu_pt/F");
-  tree->Branch("kin_nu_eta", &b_kin_nu_eta, "kin_nu_eta/F");
-  tree->Branch("kin_nu_dphi", &b_kin_nu_dphi, "kin_nu_dphi/F");
-  tree->Branch("kin_lepB_pt", &b_kin_lepB_pt, "kin_lepB_pt/F");
-  tree->Branch("kin_lepB_eta", &b_kin_lepB_eta, "kin_lepB_eta/F");
-  tree->Branch("kin_lepB_dphi", &b_kin_lepB_dphi, "kin_lepB_dphi/F");
-  tree->Branch("kin_lepB_m", &b_kin_lepB_m, "kin_lepB_m/F");
-  tree->Branch("kin_lepW_pt", &b_kin_lepW_pt, "kin_lepW_pt/F");
-  tree->Branch("kin_lepW_eta", &b_kin_lepW_eta, "kin_lepW_eta/F");
-  tree->Branch("kin_lepW_dphi", &b_kin_lepW_dphi, "kin_lepW_dphi/F");
-  tree->Branch("kin_lepT_pt", &b_kin_lepT_pt, "kin_lepT_pt/F");
-  tree->Branch("kin_lepT_eta", &b_kin_lepT_eta, "kin_lepT_eta/F");
-  tree->Branch("kin_lepT_dphi", &b_kin_lepT_dphi, "kin_lepT_dphi/F");
-  tree->Branch("kin_hadJ1_pt", &b_kin_hadJ1_pt, "kin_hadJ1_pt/F");
-  tree->Branch("kin_hadJ1_eta", &b_kin_hadJ1_eta, "kin_hadJ1_eta/F");
-  tree->Branch("kin_hadJ1_dphi", &b_kin_hadJ1_dphi, "kin_hadJ1_dphi/F");
-  tree->Branch("kin_hadJ1_m", &b_kin_hadJ1_m, "kin_hadJ1_m/F");
-  tree->Branch("kin_hadJ2_pt", &b_kin_hadJ2_pt, "kin_hadJ2_pt/F");
-  tree->Branch("kin_hadJ2_eta", &b_kin_hadJ2_eta, "kin_hadJ2_eta/F");
-  tree->Branch("kin_hadJ2_dphi", &b_kin_hadJ2_dphi, "kin_hadJ2_dphi/F");
-  tree->Branch("kin_hadJ2_m", &b_kin_hadJ2_m, "kin_hadJ2_m/F");
-  tree->Branch("kin_hadB_pt", &b_kin_hadB_pt, "kin_hadB_pt/F");
-  tree->Branch("kin_hadB_eta", &b_kin_hadB_eta, "kin_hadB_eta/F");
-  tree->Branch("kin_hadB_dphi", &b_kin_hadB_dphi, "kin_hadB_dphi/F");
-  tree->Branch("kin_hadB_m", &b_kin_hadB_m, "kin_hadB_m/F");
-  tree->Branch("kin_hadW12_pt", &b_kin_hadW12_pt, "kin_hadW12_pt/F");
-  tree->Branch("kin_hadW12_eta", &b_kin_hadW12_eta, "kin_hadW12_eta/F");
-  tree->Branch("kin_hadW12_dphi", &b_kin_hadW12_dphi, "kin_hadW12_dphi/F");
-  tree->Branch("kin_hadW12_dR", &b_kin_hadW12_dR, "kin_hadW12_dR/F");
-  tree->Branch("kin_hadW23_pt", &b_kin_hadW23_pt, "kin_hadW23_pt/F");
-  tree->Branch("kin_hadW23_eta", &b_kin_hadW23_eta, "kin_hadW23_eta/F");
-  tree->Branch("kin_hadW23_dphi", &b_kin_hadW23_dphi, "kin_hadW23_dphi/F");
-  tree->Branch("kin_hadW23_dR", &b_kin_hadW23_dR, "kin_hadW23_dR/F");
-  tree->Branch("kin_hadW13_pt", &b_kin_hadW13_pt, "kin_hadW13_pt/F");
-  tree->Branch("kin_hadW13_eta", &b_kin_hadW13_eta, "kin_hadW13_eta/F");
-  tree->Branch("kin_hadW13_dphi", &b_kin_hadW13_dphi, "kin_hadW13_dphi/F");
-  tree->Branch("kin_hadW13_dR", &b_kin_hadW13_dR, "kin_hadW13_dR/F");
-  tree->Branch("kin_hadT_pt", &b_kin_hadT_pt, "kin_hadT_pt/F");
-  tree->Branch("kin_hadT_eta", &b_kin_hadT_eta, "kin_hadT_eta/F");
-  tree->Branch("kin_hadT_dphi", &b_kin_hadT_dphi, "kin_hadT_dphi/F");
+  tree->Branch("chi2", &b_chi2, "chi2/F");
+  tree->Branch("JES", &b_JES, "JES/F");
+  tree->Branch("bjetcode", &b_bjetcode, "bjetcode/I"); // b-jet contribution "code". Format=[nbjetInLepT][nbjetInHadT]
+  tree->Branch("lep_pt", &b_lep_pt, "lep_pt/F");
+  tree->Branch("lep_eta", &b_lep_eta, "lep_eta/F");
+  tree->Branch("lep_dphi", &b_lep_dphi, "lep_dphi/F");
+  tree->Branch("nu_pt", &b_nu_pt, "nu_pt/F");
+  tree->Branch("nu_eta", &b_nu_eta, "nu_eta/F");
+  tree->Branch("nu_dphi", &b_nu_dphi, "nu_dphi/F");
+  tree->Branch("lepB_pt", &b_lepB_pt, "lepB_pt/F");
+  tree->Branch("lepB_eta", &b_lepB_eta, "lepB_eta/F");
+  tree->Branch("lepB_dphi", &b_lepB_dphi, "lepB_dphi/F");
+  tree->Branch("lepB_m", &b_lepB_m, "lepB_m/F");
+  tree->Branch("lepW_pt", &b_lepW_pt, "lepW_pt/F");
+  tree->Branch("lepW_eta", &b_lepW_eta, "lepW_eta/F");
+  tree->Branch("lepW_dphi", &b_lepW_dphi, "lepW_dphi/F");
+  tree->Branch("lepT_pt", &b_lepT_pt, "lepT_pt/F");
+  tree->Branch("lepT_eta", &b_lepT_eta, "lepT_eta/F");
+  tree->Branch("lepT_dphi", &b_lepT_dphi, "lepT_dphi/F");
+  tree->Branch("hadJ1_pt", &b_hadJ1_pt, "hadJ1_pt/F");
+  tree->Branch("hadJ1_eta", &b_hadJ1_eta, "hadJ1_eta/F");
+  tree->Branch("hadJ1_dphi", &b_hadJ1_dphi, "hadJ1_dphi/F");
+  tree->Branch("hadJ1_m", &b_hadJ1_m, "hadJ1_m/F");
+  tree->Branch("hadJ2_pt", &b_hadJ2_pt, "hadJ2_pt/F");
+  tree->Branch("hadJ2_eta", &b_hadJ2_eta, "hadJ2_eta/F");
+  tree->Branch("hadJ2_dphi", &b_hadJ2_dphi, "hadJ2_dphi/F");
+  tree->Branch("hadJ2_m", &b_hadJ2_m, "hadJ2_m/F");
+  tree->Branch("hadB_pt", &b_hadB_pt, "hadB_pt/F");
+  tree->Branch("hadB_eta", &b_hadB_eta, "hadB_eta/F");
+  tree->Branch("hadB_dphi", &b_hadB_dphi, "hadB_dphi/F");
+  tree->Branch("hadB_m", &b_hadB_m, "hadB_m/F");
+  tree->Branch("hadW12_pt", &b_hadW12_pt, "hadW12_pt/F");
+  tree->Branch("hadW12_eta", &b_hadW12_eta, "hadW12_eta/F");
+  tree->Branch("hadW12_dphi", &b_hadW12_dphi, "hadW12_dphi/F");
+  tree->Branch("hadW12_dR", &b_hadW12_dR, "hadW12_dR/F");
+  tree->Branch("hadW23_pt", &b_hadW23_pt, "hadW23_pt/F");
+  tree->Branch("hadW23_eta", &b_hadW23_eta, "hadW23_eta/F");
+  tree->Branch("hadW23_dphi", &b_hadW23_dphi, "hadW23_dphi/F");
+  tree->Branch("hadW23_dR", &b_hadW23_dR, "hadW23_dR/F");
+  tree->Branch("hadW13_pt", &b_hadW13_pt, "hadW13_pt/F");
+  tree->Branch("hadW13_eta", &b_hadW13_eta, "hadW13_eta/F");
+  tree->Branch("hadW13_dphi", &b_hadW13_dphi, "hadW13_dphi/F");
+  tree->Branch("hadW13_dR", &b_hadW13_dR, "hadW13_dR/F");
+  tree->Branch("hadT_pt", &b_hadT_pt, "hadT_pt/F");
+  tree->Branch("hadT_eta", &b_hadT_eta, "hadT_eta/F");
+  tree->Branch("hadT_dphi", &b_hadT_dphi, "hadT_dphi/F");
 
-  tree->Branch("kin_theta1", &b_kin_theta1, "kin_theta1/F"); // Angle between top and b
-  tree->Branch("kin_theta2", &b_kin_theta2, "kin_theta2/F"); // Angle between t-b and w->jj plane
+  tree->Branch("theta1", &b_theta1, "theta1/F"); // Angle between top and b
+  tree->Branch("theta2", &b_theta2, "theta2/F"); // Angle between t-b and w->jj plane
 
-  tree->Branch("kin_lepB_CSV", &b_kin_lepB_CSV, "kin_lepB_CSV/F");
-  tree->Branch("kin_hadB_CSV", &b_kin_hadB_CSV, "kin_hadB_CSV/F");
-  tree->Branch("kin_hadJ1_CSV", &b_kin_hadJ1_CSV, "kin_hadJ1_CSV/F");
-  tree->Branch("kin_hadJ2_CSV", &b_kin_hadJ2_CSV, "kin_hadJ2_CSV/F");
+  tree->Branch("lepB_CSV", &b_lepB_CSV, "lepB_CSV/F");
+  tree->Branch("hadB_CSV", &b_hadB_CSV, "hadB_CSV/F");
+  tree->Branch("hadJ1_CSV", &b_hadJ1_CSV, "hadJ1_CSV/F");
+  tree->Branch("hadJ2_CSV", &b_hadJ2_CSV, "hadJ2_CSV/F");
 
-  tree->Branch("kin_lepB_CvsB", &b_kin_lepB_CvsB, "kin_lepB_CvsB/F");
-  tree->Branch("kin_hadB_CvsB", &b_kin_hadB_CvsB, "kin_hadB_CvsB/F");
-  tree->Branch("kin_hadJ1_CvsB", &b_kin_hadJ1_CvsB, "kin_hadJ1_CvsB/F");
-  tree->Branch("kin_hadJ2_CvsB", &b_kin_hadJ2_CvsB, "kin_hadJ2_CvsB/F");
+  tree->Branch("lepB_CvsB", &b_lepB_CvsB, "lepB_CvsB/F");
+  tree->Branch("hadB_CvsB", &b_hadB_CvsB, "hadB_CvsB/F");
+  tree->Branch("hadJ1_CvsB", &b_hadJ1_CvsB, "hadJ1_CvsB/F");
+  tree->Branch("hadJ2_CvsB", &b_hadJ2_CvsB, "hadJ2_CvsB/F");
 
-  tree->Branch("kin_lepB_CvsL", &b_kin_lepB_CvsL, "kin_lepB_CvsL/F");
-  tree->Branch("kin_hadB_CvsL", &b_kin_hadB_CvsL, "kin_hadB_CvsL/F");
-  tree->Branch("kin_hadJ1_CvsL", &b_kin_hadJ1_CvsL, "kin_hadJ1_CvsL/F");
-  tree->Branch("kin_hadJ2_CvsL", &b_kin_hadJ2_CvsL, "kin_hadJ2_CvsL/F");
+  tree->Branch("lepB_CvsL", &b_lepB_CvsL, "lepB_CvsL/F");
+  tree->Branch("hadB_CvsL", &b_hadB_CvsL, "hadB_CvsL/F");
+  tree->Branch("hadJ1_CvsL", &b_hadJ1_CvsL, "hadJ1_CvsL/F");
+  tree->Branch("hadJ2_CvsL", &b_hadJ2_CvsL, "hadJ2_CvsL/F");
 
-  tree->Branch("kin_addJetsByPt_m", &b_kin_addJetsByPt_m, "kin_addJetsByPt_m/F");
-  tree->Branch("kin_addJetsByPt_dR", &b_kin_addJetsByPt_dR, "kin_addJetsByPt_dR/F");
-  tree->Branch("kin_addJetsByCSV_m", &b_kin_addJetsByCSV_m, "kin_addJetsByCSV_m/F");
-  tree->Branch("kin_addJetsByCSV_dR", &b_kin_addJetsByCSV_dR, "kin_addJetsByCSV_dR/F");
+  tree->Branch("addJetsByPt_m", &b_addJetsByPt_m, "addJetsByPt_m/F");
+  tree->Branch("addJetsByPt_dR", &b_addJetsByPt_dR, "addJetsByPt_dR/F");
+  tree->Branch("addJetsByCSV_m", &b_addJetsByCSV_m, "addJetsByCSV_m/F");
+  tree->Branch("addJetsByCSV_dR", &b_addJetsByCSV_dR, "addJetsByCSV_dR/F");
 
-  tree->Branch("kin_addJetByPt1_pt", &b_kin_addJetByPt1_pt, "kin_addJetByPt1_pt/F");
-  tree->Branch("kin_addJetByPt2_pt", &b_kin_addJetByPt2_pt, "kin_addJetByPt2_pt/F");
-  tree->Branch("kin_addJetByPt1_CSV", &b_kin_addJetByPt1_CSV, "kin_addJetByPt1_CSV/F");
-  tree->Branch("kin_addJetByPt2_CSV", &b_kin_addJetByPt2_CSV, "kin_addJetByPt2_CSV/F");
+  tree->Branch("addJetByPt1_pt", &b_addJetByPt1_pt, "addJetByPt1_pt/F");
+  tree->Branch("addJetByPt2_pt", &b_addJetByPt2_pt, "addJetByPt2_pt/F");
+  tree->Branch("addJetByPt1_CSV", &b_addJetByPt1_CSV, "addJetByPt1_CSV/F");
+  tree->Branch("addJetByPt2_CSV", &b_addJetByPt2_CSV, "addJetByPt2_CSV/F");
 
-  tree->Branch("kin_addJetByCSV1_pt", &b_kin_addJetByCSV1_pt, "kin_addJetByCSV1_pt/F");
-  tree->Branch("kin_addJetByCSV2_pt", &b_kin_addJetByCSV2_pt, "kin_addJetByCSV2_pt/F");
-  tree->Branch("kin_addJetByCSV1_CSV", &b_kin_addJetByCSV1_CSV, "kin_addJetByCSV1_CSV/F");
-  tree->Branch("kin_addJetByCSV2_CSV", &b_kin_addJetByCSV2_CSV, "kin_addJetByCSV2_CSV/F");
+  tree->Branch("addJetByCSV1_pt", &b_addJetByCSV1_pt, "addJetByCSV1_pt/F");
+  tree->Branch("addJetByCSV2_pt", &b_addJetByCSV2_pt, "addJetByCSV2_pt/F");
+  tree->Branch("addJetByCSV1_CSV", &b_addJetByCSV1_CSV, "addJetByCSV1_CSV/F");
+  tree->Branch("addJetByCSV2_CSV", &b_addJetByCSV2_CSV, "addJetByCSV2_CSV/F");
 
   if (fChain == 0) return;
 
@@ -267,7 +267,7 @@ void AnalyzeKinFitHYTuple::Loop(const string modeStr, const string outFileName)
             if ( chi2 < bestChi2 ) {
               bestChi2 = chi2;
               bestIdxs = {j1, j2, j3, j4};
-              b_kin_bjetcode = nbjetsInLepT*10 + nbjetsInHadT; // b jet contribution "code"
+              b_bjetcode = nbjetsInLepT*10 + nbjetsInHadT; // b jet contribution "code"
             }
           }
         }
@@ -292,8 +292,8 @@ void AnalyzeKinFitHYTuple::Loop(const string modeStr, const string outFileName)
       const size_t j = bestIdxs[i];
       jetP4s[i].SetPtEtaPhiE(jets_pt[j], jets_eta[j], jets_dphi[j], jets_e[j]);
     }
-    b_kin_chi2 = fit.compute(metP4, leptonP4, jetP4s[0], jetP4s[1], jetP4s[2], jetP4s[3]);
-    b_kin_JES = fit.min_->X()[0];
+    b_chi2 = fit.compute(metP4, leptonP4, jetP4s[0], jetP4s[1], jetP4s[2], jetP4s[3]);
+    b_JES = fit.min_->X()[0];
     const std::vector<TLorentzVector> solution = fit.getSolution();
     const auto& sol_nuP4 = solution[0], sol_lepP4 = solution[1], sol_ljP4 = solution[2];
     const auto& sol_wj1P4 = solution[3], sol_wj2P4 = solution[4], sol_hbP4 = solution[5];
@@ -313,29 +313,29 @@ void AnalyzeKinFitHYTuple::Loop(const string modeStr, const string outFileName)
     hJES->Fill(fit.min_->X()[0]);
     heta->Fill(fit.min_->X()[1]);
 
-    b_kin_lep_pt = sol_lepP4.Pt(); b_kin_lep_eta = sol_lepP4.Eta(); b_kin_lep_dphi = sol_lepP4.Phi();
-    b_kin_nu_pt = sol_nuP4.Pt(); b_kin_nu_eta = sol_nuP4.Eta(); b_kin_nu_dphi = sol_nuP4.Phi();
-    b_kin_lepB_pt = sol_ljP4.Pt(); b_kin_lepB_eta = sol_ljP4.Eta(); b_kin_lepB_dphi = sol_ljP4.Phi(); b_kin_lepB_m = sol_ljP4.M();
-    b_kin_hadJ1_pt = sol_wj1P4.Pt(); b_kin_hadJ1_eta = sol_wj1P4.Eta(); b_kin_hadJ1_dphi = sol_wj1P4.Phi(); b_kin_hadJ1_m = sol_wj1P4.M();
-    b_kin_hadJ2_pt = sol_wj2P4.Pt(); b_kin_hadJ2_eta = sol_wj2P4.Eta(); b_kin_hadJ2_dphi = sol_wj2P4.Phi(); b_kin_hadJ2_m = sol_wj2P4.M();
-    b_kin_hadB_pt = sol_hbP4.Pt(); b_kin_hadB_eta = sol_hbP4.Eta(); b_kin_hadB_dphi = sol_hbP4.Phi(); b_kin_hadB_m = sol_hbP4.M();
+    b_lep_pt = sol_lepP4.Pt(); b_lep_eta = sol_lepP4.Eta(); b_lep_dphi = sol_lepP4.Phi();
+    b_nu_pt = sol_nuP4.Pt(); b_nu_eta = sol_nuP4.Eta(); b_nu_dphi = sol_nuP4.Phi();
+    b_lepB_pt = sol_ljP4.Pt(); b_lepB_eta = sol_ljP4.Eta(); b_lepB_dphi = sol_ljP4.Phi(); b_lepB_m = sol_ljP4.M();
+    b_hadJ1_pt = sol_wj1P4.Pt(); b_hadJ1_eta = sol_wj1P4.Eta(); b_hadJ1_dphi = sol_wj1P4.Phi(); b_hadJ1_m = sol_wj1P4.M();
+    b_hadJ2_pt = sol_wj2P4.Pt(); b_hadJ2_eta = sol_wj2P4.Eta(); b_hadJ2_dphi = sol_wj2P4.Phi(); b_hadJ2_m = sol_wj2P4.M();
+    b_hadB_pt = sol_hbP4.Pt(); b_hadB_eta = sol_hbP4.Eta(); b_hadB_dphi = sol_hbP4.Phi(); b_hadB_m = sol_hbP4.M();
 
     const auto lepW = sol_lepP4+sol_nuP4;
     const auto lepT = lepW+sol_ljP4;
-    b_kin_lepW_pt = lepW.Pt(); b_kin_lepW_eta = lepW.Eta(); b_kin_lepW_dphi = lepW.Phi(); b_kin_lepW_m = lepW.M();
-    b_kin_lepT_pt = lepT.Pt(); b_kin_lepT_eta = lepT.Eta(); b_kin_lepT_dphi = lepT.Phi(); b_kin_lepT_m = lepT.M();
+    b_lepW_pt = lepW.Pt(); b_lepW_eta = lepW.Eta(); b_lepW_dphi = lepW.Phi(); b_lepW_m = lepW.M();
+    b_lepT_pt = lepT.Pt(); b_lepT_eta = lepT.Eta(); b_lepT_dphi = lepT.Phi(); b_lepT_m = lepT.M();
 
     const auto hadW12 = sol_wj1P4+sol_wj2P4;
     const auto hadW23 = sol_wj2P4+sol_hbP4;
     const auto hadW13 = sol_wj1P4+sol_hbP4;
     const auto hadT = hadW12+sol_hbP4;
-    b_kin_hadW12_pt = hadW12.Pt(); b_kin_hadW12_eta = hadW12.Eta(); b_kin_hadW12_dphi = hadW12.Phi(); b_kin_hadW12_m = hadW12.M();
-    b_kin_hadW23_pt = hadW23.Pt(); b_kin_hadW23_eta = hadW23.Eta(); b_kin_hadW23_dphi = hadW23.Phi(); b_kin_hadW23_m = hadW23.M();
-    b_kin_hadW13_pt = hadW13.Pt(); b_kin_hadW13_eta = hadW13.Eta(); b_kin_hadW13_dphi = hadW13.Phi(); b_kin_hadW13_m = hadW13.M();
-    b_kin_hadW12_dR = sol_wj1P4.DeltaR(sol_wj2P4);
-    b_kin_hadW23_dR = sol_wj2P4.DeltaR(sol_hbP4);
-    b_kin_hadW13_dR = sol_wj1P4.DeltaR(sol_hbP4);
-    b_kin_hadT_pt = hadT.Pt(); b_kin_hadT_eta = hadT.Eta(); b_kin_hadT_dphi = hadT.Phi(); b_kin_hadT_m = hadT.M();
+    b_hadW12_pt = hadW12.Pt(); b_hadW12_eta = hadW12.Eta(); b_hadW12_dphi = hadW12.Phi(); b_hadW12_m = hadW12.M();
+    b_hadW23_pt = hadW23.Pt(); b_hadW23_eta = hadW23.Eta(); b_hadW23_dphi = hadW23.Phi(); b_hadW23_m = hadW23.M();
+    b_hadW13_pt = hadW13.Pt(); b_hadW13_eta = hadW13.Eta(); b_hadW13_dphi = hadW13.Phi(); b_hadW13_m = hadW13.M();
+    b_hadW12_dR = sol_wj1P4.DeltaR(sol_wj2P4);
+    b_hadW23_dR = sol_wj2P4.DeltaR(sol_hbP4);
+    b_hadW13_dR = sol_wj1P4.DeltaR(sol_hbP4);
+    b_hadT_pt = hadT.Pt(); b_hadT_eta = hadT.Eta(); b_hadT_dphi = hadT.Phi(); b_hadT_m = hadT.M();
 
     TLorentzVector cm_hb = sol_hbP4, cm_hj1 = sol_wj1P4, cm_hj2 = sol_wj2P4;
     TLorentzVector cm_top = cm_hb+cm_hj1+cm_hj2;
@@ -346,23 +346,23 @@ void AnalyzeKinFitHYTuple::Loop(const string modeStr, const string outFileName)
     cm_hj1 *= 1./cm_hj1.P();
     cm_hj2 *= 1./cm_hj2.P();
     cm_top *= 1./cm_top.P();
-    b_kin_theta1 = cm_hb.Vect().Dot(cm_top.Vect());
-    b_kin_theta2 = cm_hb.Vect().Cross(cm_hj1.Vect()).Dot(cm_hb.Vect().Cross(cm_top.Vect()));
+    b_theta1 = cm_hb.Vect().Dot(cm_top.Vect());
+    b_theta2 = cm_hb.Vect().Cross(cm_hj1.Vect()).Dot(cm_hb.Vect().Cross(cm_top.Vect()));
 
-    b_kin_lepB_CSV = jets_CSV[bestIdxs[0]];
-    b_kin_hadJ1_CSV = jets_CSV[bestIdxs[1]];
-    b_kin_hadJ2_CSV = jets_CSV[bestIdxs[2]];
-    b_kin_hadB_CSV = jets_CSV[bestIdxs[3]];
+    b_lepB_CSV = jets_CSV[bestIdxs[0]];
+    b_hadJ1_CSV = jets_CSV[bestIdxs[1]];
+    b_hadJ2_CSV = jets_CSV[bestIdxs[2]];
+    b_hadB_CSV = jets_CSV[bestIdxs[3]];
 
-    b_kin_lepB_CvsB = jets_CvsB[bestIdxs[0]];
-    b_kin_hadJ1_CvsB = jets_CvsB[bestIdxs[1]];
-    b_kin_hadJ2_CvsB = jets_CvsB[bestIdxs[2]];
-    b_kin_hadB_CvsB = jets_CvsB[bestIdxs[3]];
+    b_lepB_CvsB = jets_CvsB[bestIdxs[0]];
+    b_hadJ1_CvsB = jets_CvsB[bestIdxs[1]];
+    b_hadJ2_CvsB = jets_CvsB[bestIdxs[2]];
+    b_hadB_CvsB = jets_CvsB[bestIdxs[3]];
 
-    b_kin_lepB_CvsL = jets_CvsL[bestIdxs[0]];
-    b_kin_hadJ1_CvsL = jets_CvsL[bestIdxs[1]];
-    b_kin_hadJ2_CvsL = jets_CvsL[bestIdxs[2]];
-    b_kin_hadB_CvsL = jets_CvsL[bestIdxs[3]];
+    b_lepB_CvsL = jets_CvsL[bestIdxs[0]];
+    b_hadJ1_CvsL = jets_CvsL[bestIdxs[1]];
+    b_hadJ2_CvsL = jets_CvsL[bestIdxs[2]];
+    b_hadB_CvsL = jets_CvsL[bestIdxs[3]];
 
     std::vector<size_t> addJetIdxs;
     for ( size_t j : jetIdxs ) {
@@ -375,10 +375,10 @@ void AnalyzeKinFitHYTuple::Loop(const string modeStr, const string outFileName)
       addJetIdxs.push_back(j);
     }
     if ( addJetIdxs.size() < 2 ) {
-      b_kin_addJetByPt1_pt = b_kin_addJetByPt2_pt = b_kin_addJetByCSV1_pt = b_kin_addJetByCSV2_pt = 0;
-      b_kin_addJetByPt1_CSV = b_kin_addJetByPt2_CSV = b_kin_addJetByCSV1_CSV = b_kin_addJetByCSV2_CSV = -10;
-      b_kin_addJetsByPt_m = b_kin_addJetsByCSV_m = 0;
-      b_kin_addJetsByPt_dR = b_kin_addJetsByCSV_dR = 0;
+      b_addJetByPt1_pt = b_addJetByPt2_pt = b_addJetByCSV1_pt = b_addJetByCSV2_pt = 0;
+      b_addJetByPt1_CSV = b_addJetByPt2_CSV = b_addJetByCSV1_CSV = b_addJetByCSV2_CSV = -10;
+      b_addJetsByPt_m = b_addJetsByCSV_m = 0;
+      b_addJetsByPt_dR = b_addJetsByCSV_dR = 0;
     }
     else {
       auto addJetIdxsByPt = addJetIdxs;
@@ -392,36 +392,36 @@ void AnalyzeKinFitHYTuple::Loop(const string modeStr, const string outFileName)
       addJetByPt1.SetPtEtaPhiE(jets_pt[jByCSV1], jets_eta[jByCSV1], jets_dphi[jByCSV1], jets_e[jByCSV1]);
       addJetByPt1.SetPtEtaPhiE(jets_pt[jByCSV2], jets_eta[jByCSV2], jets_dphi[jByCSV2], jets_e[jByCSV2]);
 
-      b_kin_addJetByPt1_pt = jets_pt[jByPt1];
-      b_kin_addJetByPt2_pt = jets_pt[jByPt2];
-      b_kin_addJetByCSV1_pt = jets_pt[jByCSV1];
-      b_kin_addJetByCSV2_pt = jets_pt[jByCSV2];
-      b_kin_addJetByPt1_CSV = jets_CSV[jByPt1];
-      b_kin_addJetByPt2_CSV = jets_CSV[jByPt2];
-      b_kin_addJetByCSV1_CSV = jets_CSV[jByCSV1];
-      b_kin_addJetByCSV2_CSV = jets_CSV[jByCSV2];
-      b_kin_addJetsByPt_dR = addJetByPt1.DeltaR(addJetByPt2);
-      b_kin_addJetsByCSV_dR = addJetByCSV1.DeltaR(addJetByCSV2);
-      b_kin_addJetsByPt_m = (addJetByPt1+addJetByPt2).M();
-      b_kin_addJetsByCSV_m = (addJetByCSV1+addJetByCSV2).M();
+      b_addJetByPt1_pt = jets_pt[jByPt1];
+      b_addJetByPt2_pt = jets_pt[jByPt2];
+      b_addJetByCSV1_pt = jets_pt[jByCSV1];
+      b_addJetByCSV2_pt = jets_pt[jByCSV2];
+      b_addJetByPt1_CSV = jets_CSV[jByPt1];
+      b_addJetByPt2_CSV = jets_CSV[jByPt2];
+      b_addJetByCSV1_CSV = jets_CSV[jByCSV1];
+      b_addJetByCSV2_CSV = jets_CSV[jByCSV2];
+      b_addJetsByPt_dR = addJetByPt1.DeltaR(addJetByPt2);
+      b_addJetsByCSV_dR = addJetByCSV1.DeltaR(addJetByCSV2);
+      b_addJetsByPt_m = (addJetByPt1+addJetByPt2).M();
+      b_addJetsByCSV_m = (addJetByCSV1+addJetByCSV2).M();
 
-      hAddJJ_dR->Fill(b_kin_addJetsByCSV_dR);
-      hAddJJ_m->Fill(b_kin_addJetsByCSV_m);
+      hAddJJ_dR->Fill(b_addJetsByCSV_dR);
+      hAddJJ_m->Fill(b_addJetsByCSV_m);
 
     }
 
     // Rotate by lepton phi
     rotate(b_met_dphi, b_lepton_phi);
-    rotate(b_kin_lepB_dphi, b_lepton_phi);
-    rotate(b_kin_lepW_dphi, b_lepton_phi);
-    rotate(b_kin_lepT_dphi, b_lepton_phi);
-    rotate(b_kin_hadJ1_dphi, b_lepton_phi);
-    rotate(b_kin_hadJ2_dphi, b_lepton_phi);
-    rotate(b_kin_hadB_dphi, b_lepton_phi);
-    rotate(b_kin_hadW12_dphi, b_lepton_phi);
-    rotate(b_kin_hadW23_dphi, b_lepton_phi);
-    rotate(b_kin_hadW13_dphi, b_lepton_phi);
-    rotate(b_kin_hadT_dphi, b_lepton_phi);
+    rotate(b_lepB_dphi, b_lepton_phi);
+    rotate(b_lepW_dphi, b_lepton_phi);
+    rotate(b_lepT_dphi, b_lepton_phi);
+    rotate(b_hadJ1_dphi, b_lepton_phi);
+    rotate(b_hadJ2_dphi, b_lepton_phi);
+    rotate(b_hadB_dphi, b_lepton_phi);
+    rotate(b_hadW12_dphi, b_lepton_phi);
+    rotate(b_hadW23_dphi, b_lepton_phi);
+    rotate(b_hadW13_dphi, b_lepton_phi);
+    rotate(b_hadT_dphi, b_lepton_phi);
 
     tree->Fill();
   }

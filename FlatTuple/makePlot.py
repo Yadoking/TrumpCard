@@ -27,13 +27,13 @@ h.addBkg("tt", "t#bar{t}", "%s/delphes_tt.root" % basedir, kRed, xsec_ttbar, 100
 h.add1D("met_pt", "met_pt", "MET p_{T} (GeV);Events / 5GeV", 40, 0, 200)
 h.add1D("jets_n", "jets_n", "Jet multiplicity;Events", 10, 0, 10)
 h.add1D("bjets_n", "bjets_n", "B-jet multiplicity;Events", 10, 0, 10)
-h.add1D("hadT_m", "kin_hadT_m", "Hadronic top mass (GeV);Events / 10GeV", 50, 0, 500)
-h.add1D("hadW12_m", "kin_hadW12_m", "Hadronic W_{12} mass (GeV);Events / 10GeV", 50, 0, 500)
-h.add1D("theta1", "kin_theta1", "#theta_{1};Events / 0.1", 64, -3.2/2, 3.2/2)
-h.add1D("theta2", "kin_theta2", "#theta_{2};Events / 0.1", 64, -3.2/2, 3.2/2)
+h.add1D("hadT_m", "hadT_m", "Hadronic top mass (GeV);Events / 10GeV", 50, 0, 500)
+h.add1D("hadW12_m", "hadW12_m", "Hadronic W_{12} mass (GeV);Events / 10GeV", 50, 0, 500)
+h.add1D("theta1", "theta1", "#theta_{1};Events / 0.1", 64, -3.2/2, 3.2/2)
+h.add1D("theta2", "theta2", "#theta_{2};Events / 0.1", 64, -3.2/2, 3.2/2)
 
 ## Define cut flows
-h.addCutStep("step0", "kin_bjetcode%10>=2", "", "weight_gen")
+h.addCutStep("step0", "bjetcode%10>=2", "", "weight_gen")
 h.addCutStep("step1", "lepton_pt>30 && abs(lepton_eta)<2.1", "lepton_pt,lepton_eta,jets_n,met_pt", "weight_gen")
 h.addCutStep("step2", "met_pt >= 30", "jets_n,bjets_n,met_pt", "weight_gen")
 h.addCutStep("step3", "jets_n >= 4", "jets_n,bjets_n,met_pt,hadT_m,hadW12_m,theta1,theta2", "weight_gen")

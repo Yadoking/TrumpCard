@@ -7,7 +7,7 @@ void run()
 
    TChain chain("tree");
    //chain.Add("out.root");
-   chain.Add("out_fcnc.root");
+   chain.Add("../Delphes2Flat/ntuple_tch.root");
 
    Yosi t(&chain);
    t.Loop();

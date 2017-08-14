@@ -12,7 +12,7 @@ void run_DelphesKinFit();
 
 void run_KinFit()
 {
-  run_CMSKinFit();
+  //run_CMSKinFit();
   run_DelphesKinFit();
 }
 
@@ -40,11 +40,11 @@ void run_DelphesKinFit()
   chainFCNC.Add("../Delphes2Flat/ntuple_tch.root");
 
   TChain chainTTBB("tree");
-  chainTTBB.Add("../Delphes2Flat/ntuple_ttbb.root");
+  chainTTBB.Add("../Delphes2Flat/ntuple_tt.root");
 
   AnalyzeKinFitDelphes tFCNC(&chainFCNC);
   AnalyzeKinFitDelphes tTTBB(&chainTTBB);
 
   tFCNC.Loop(mode, "kin/delphes_FCNC.root"); // mode set to FCNC, require 3 b jets
-  tTTBB.Loop(mode, "kin/delphes_ttbb.root"); // mode set to FCNC, require 3 b jets
+  tTTBB.Loop(mode, "kin/delphes_tt.root"); // mode set to FCNC, require 3 b jets
 }
