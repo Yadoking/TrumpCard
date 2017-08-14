@@ -94,7 +94,7 @@ void makeFlatTuple(const std::string finName, const std::string foutName)
   unsigned short b_gen_n;
   float b_gen_pt[gen_N], b_gen_eta[gen_N], b_gen_phi[gen_N], b_gen_m[gen_N];
   short b_gen_pdgId[gen_N], b_gen_q3[gen_N];
-  short b_gen_dau1[gen_N], b_gen_dau2[gen_N];
+  short b_gen_mother[gen_N], b_gen_dau1[gen_N], b_gen_dau2[gen_N];
 
   const unsigned short subjets_N = 10000;
   unsigned short b_subjets_n;
@@ -139,6 +139,7 @@ void makeFlatTuple(const std::string finName, const std::string foutName)
   tree->Branch("gen_m", b_gen_m, "gen_m[gen_n]/F");
   tree->Branch("gen_pdgId", b_gen_pdgId, "gen_pdgId[gen_n]/S");
   tree->Branch("gen_q3", b_gen_q3, "gen_q3[gen_n]/S");
+  tree->Branch("gen_mother", b_gen_mother, "gen_mother[gen_n]/S");
   tree->Branch("gen_dau1", b_gen_dau1, "gen_dau1[gen_n]/S");
   tree->Branch("gen_dau2", b_gen_dau2, "gen_dau2[gen_n]/S");
 
@@ -206,6 +207,7 @@ void makeFlatTuple(const std::string finName, const std::string foutName)
       b_gen_pdgId[b_gen_n] = p->PID;
       b_gen_q3[b_gen_n] = p->Charge*3;
       b_gen_dau1[b_gen_n] = b_gen_dau2[b_gen_n] = -1;
+      b_gen_mother[b_gen_n] = -1;
 
       ++b_gen_n;
       if ( b_gen_n >= gen_N ) break;
@@ -229,6 +231,7 @@ void makeFlatTuple(const std::string finName, const std::string foutName)
         b_gen_pdgId[b_gen_n] = dau->PID;
         b_gen_q3[b_gen_n] = dau->Charge*3;
         b_gen_dau1[b_gen_n] = b_gen_dau2[b_gen_n] = -1;
+        b_gen_mother[b_gen_n] = i;
 
         const int iDau = b_gen_n;
         ++b_gen_n;
@@ -250,6 +253,7 @@ void makeFlatTuple(const std::string finName, const std::string foutName)
           b_gen_pdgId[b_gen_n] = gdau->PID;
           b_gen_q3[b_gen_n] = gdau->Charge*3;
           b_gen_dau1[b_gen_n] = b_gen_dau2[b_gen_n] = -1;
+          b_gen_mother[b_gen_n] = iDau;
 
           ++ngdau;
           ++b_gen_n;
@@ -275,6 +279,7 @@ void makeFlatTuple(const std::string finName, const std::string foutName)
             b_gen_pdgId[b_gen_n] = ggdau->PID;
             b_gen_q3[b_gen_n] = ggdau->Charge*3;
             b_gen_dau1[b_gen_n] = b_gen_dau2[b_gen_n] = -1;
+            b_gen_mother[b_gen_n] = iGdau;
 
             ++nggdau;
             ++b_gen_n;
