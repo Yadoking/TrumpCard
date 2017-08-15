@@ -373,12 +373,12 @@ void AnalyzeKinFitDelphes::Loop(const string modeStr, const string outFileName)
     }
     // Do the deltaR matching to the reconstructed objects
     b_genMatch = 0; // [lep][nu][lepB][hadJ1][hadJ2][hadB]
-    if ( gen_lep.Pt()   > 0 and gen_lep.DeltaR(leptonP4)    < 0.1 ) b_genMatch |= 1<<5;
-    if ( gen_nu.Pt()    > 0 and gen_nu.DeltaPhi(metP4)      < 0.1 ) b_genMatch |= 1<<4;
-    if ( gen_lepB.Pt()  > 0 and gen_lepB.DeltaR(jetP4s[0])  < 0.1 ) b_genMatch |= 1<<3;
-    if ( gen_hadJ1.Pt() > 0 and gen_hadJ1.DeltaR(jetP4s[1]) < 0.1 ) b_genMatch |= 1<<2;
-    if ( gen_hadJ2.Pt() > 0 and gen_hadJ2.DeltaR(jetP4s[2]) < 0.1 ) b_genMatch |= 1<<1;
-    if ( gen_hadB.Pt()  > 0 and gen_hadB.DeltaR(jetP4s[3])  < 0.1 ) b_genMatch |= 1<<0;
+    if ( gen_lep.Pt()   > 0 and gen_lep.DeltaR(sol_lepP4)    < 0.1 ) b_genMatch |= 1<<5;
+    if ( gen_nu.Pt()    > 0 and gen_nu.DeltaR(sol_nuP4)      < 0.1 ) b_genMatch |= 1<<4;
+    if ( gen_lepB.Pt()  > 0 and gen_lepB.DeltaR(sol_ljP4)  < 0.1 ) b_genMatch |= 1<<3;
+    if ( gen_hadJ1.Pt() > 0 and (gen_hadJ1.DeltaR(sol_wj1P4) < 0.1 or gen_hadJ1.DeltaR(sol_wj2P4) < 0.1) ) b_genMatch |= 1<<2;
+    if ( gen_hadJ2.Pt() > 0 and (gen_hadJ2.DeltaR(sol_wj1P4) < 0.1 or gen_hadJ2.DeltaR(sol_wj2P4) < 0.1) ) b_genMatch |= 1<<1;
+    if ( gen_hadB.Pt()  > 0 and gen_hadB.DeltaR(sol_hbP4)  < 0.1 ) b_genMatch |= 1<<0;
 
     hLW_m->Fill( (sol_lepP4+sol_nuP4).M() );
     hLT_m->Fill( (sol_lepP4+sol_nuP4+sol_ljP4).M() );
