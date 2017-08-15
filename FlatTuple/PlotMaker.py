@@ -50,7 +50,7 @@ class HistInfo:
         if doReset: self.samples_RD['fNames'] = fNames
         else: self.samples_RD['fNames'].extend(fNames)
 
-    def addSig(self, name, title, fNames, color, xsec, evt, doReset=False):
+    def addSig(self, name, title, fNames, color, xsec, evt, baseCut="", doReset=False):
         if type(fNames) == str: fNames = fNames.split(',')
         nEvent = 0.0
         if type(evt) == int or type(evt) == float:
@@ -59,11 +59,12 @@ class HistInfo:
             for fName in fNames:
                 f = TFile(fName)
                 nEvent += f.Get(evt).GetBinContent(2)
+        if baseCut == '': baseCut = '1'
 
         if title not in self.samples_sig:
             self.samples_sig[title] = {'color':color, 'subsamples':OrderedDict()}
         if name not in self.samples_sig[title]['subsamples']:
-            self.samples_sig[title]['subsamples'][name] = {'fNames':[], 'xsec':xsec, 'evt':0.0}
+            self.samples_sig[title]['subsamples'][name] = {'fNames':[], 'xsec':xsec, 'evt':0.0, 'baseCut':baseCut}
 
         if doReset:
             self.samples_sig[title]['subsamples'][name]['fNames'] = fNames
@@ -72,7 +73,7 @@ class HistInfo:
             self.samples_sig[title]['subsamples'][name]['fNames'].extend(fNames)
             self.samples_sig[title]['subsamples'][name]['evt'] += nEvent
 
-    def addBkg(self, name, title, fNames, color, xsec, evt, doReset=False):
+    def addBkg(self, name, title, fNames, color, xsec, evt, baseCut="", doReset=False):
         if type(fNames) == str: fNames = fNames.split(',')
         nEvent = 0.0
         if type(evt) == int or type(evt) == float:
@@ -81,11 +82,12 @@ class HistInfo:
             for fName in fNames:
                 f = TFile(fName)
                 nEvent += f.Get(evt).GetBinContent(2)
+        if baseCut == '': baseCut = '1'
 
         if title not in self.samples_bkg:
             self.samples_bkg[title] = {'color':color, 'subsamples':OrderedDict()}
         if name not in self.samples_bkg[title]['subsamples']:
-            self.samples_bkg[title]['subsamples'][name] = {'fNames':[], 'xsec':xsec, 'evt':0.0}
+            self.samples_bkg[title]['subsamples'][name] = {'fNames':[], 'xsec':xsec, 'evt':0.0, 'baseCut':baseCut}
 
         if doReset:
             self.samples_bkg[title]['subsamples'][name]['fNames'] = fNames
@@ -197,7 +199,7 @@ class HistMaker(HistInfo):
                         cuts.append("(%s)" % cut)
                         cut = "&&".join(cuts)
                     if self.doEventList:
-                        cuts = [cut]
+                        cuts = [ssInfo['baseCut'], cut]
                         cut = "&&".join(cuts)
                         gROOT.cd()
                         chain.SetProof(False)
@@ -241,7 +243,7 @@ class HistMaker(HistInfo):
                         cuts.append("(%s)" % cut)
                         cut = "&&".join(cuts)
                     if self.doEventList:
-                        cuts = [cut]
+                        cuts = [ssInfo['baseCut'], cut]
                         cut = "&&".join(cuts)
                         gROOT.cd()
                         chain.SetProof(False)
