@@ -364,10 +364,49 @@ void AnalyzeM3Delphes::Loop(const string modeStr, const string outFileName, stri
     }
 
     // Generator level objects
-    b_genMatch = 0; // [lep][nu][lepB][hadJ1][hadJ2][hadB][addJ1][addJ2]
     TLorentzVector gen_lep, gen_nu, gen_lepB, gen_hadJ1, gen_hadJ2, gen_hadB;
-    for ( size_t i=0; i<b_gen_n; ++i ) {
+    for ( size_t i=0; i<gen_n; ++i ) {
+      const int absId = abs(gen_pdgId[i]);
+      if ( absId != 24 and absId != 25 ) continue;
+
+      const int mother = gen_mother[i];
+      if ( mother < 0 or abs(gen_pdgId[mother]) != 6 ) continue; // Should be from top quark decay
+
+      const int sibling1 = gen_dau1[mother], sibling2 = gen_dau2[mother];
+      if ( sibling2-sibling1 != 1 or sibling2 < 0 or sibling1 < 0 ) continue; // two siblingings (including itself), t->Wb or t->Hc
+      const int sibling = (sibling1 == int(i)) ? sibling2 : sibling1;
+
+      int dau1 = gen_dau1[i], dau2 = gen_dau2[i];
+      if ( dau2-dau1 != 1 or dau1 < 0 or dau2 < 0 ) continue; // should have two daughters only
+      if ( abs(dau1) > abs(dau2) ) swap(dau1, dau2);
+
+      if ( abs(gen_pdgId[dau1]) <= 5 and abs(gen_pdgId[dau2]) <= 5 ) { // W->jj or H->bb
+        gen_hadJ1.SetPtEtaPhiM(gen_pt[dau1], gen_eta[dau1], gen_phi[dau1], gen_m[dau1]);
+        gen_hadJ2.SetPtEtaPhiM(gen_pt[dau2], gen_eta[dau2], gen_phi[dau2], gen_m[dau2]);
+        gen_hadB.SetPtEtaPhiM(gen_pt[sibling], gen_eta[sibling], gen_phi[sibling], gen_m[sibling]);
+      }
+      else {
+        if ( abs(gen_pdgId[dau1]) == 15 ) {
+          for ( int j=gen_dau1[dau1]; j<=gen_dau2[dau1]; ++j ) {
+            if ( j < 0 ) continue;
+            const int aid = abs(gen_pdgId[j]);
+            if ( aid == 11 or aid == 13 ) { dau1 = j; break; }
+          }
+        }
+
+        gen_lep.SetPtEtaPhiM(gen_pt[dau1], gen_eta[dau1], gen_phi[dau1], gen_m[dau1]);
+        gen_nu.SetPtEtaPhiM(gen_pt[dau2], gen_eta[dau2], gen_phi[dau2], gen_m[dau2]);
+        gen_lepB.SetPtEtaPhiM(gen_pt[sibling], gen_eta[sibling], gen_phi[sibling], gen_m[sibling]);
+      }
     }
+    // Do the deltaR matching to the reconstructed objects
+    b_genMatch = 0; // [lep][nu][lepB][hadJ1][hadJ2][hadB]
+    if ( gen_lep.Pt()   > 0 and gen_lep.DeltaR(leptonP4)    < 0.1 ) b_genMatch |= 1<<5;
+    if ( gen_nu.Pt()    > 0 and gen_nu.DeltaPhi(metP4)      < 0.1 ) b_genMatch |= 1<<4;
+    if ( gen_lepB.Pt()  > 0 and gen_lepB.DeltaR(jetP4s[0])  < 0.1 ) b_genMatch |= 1<<3;
+    if ( gen_hadJ1.Pt() > 0 and (gen_hadJ1.DeltaR(jetP4s[1]) < 0.1 or gen_hadJ1.DeltaR(jetP4s[2]) < 0.1) ) b_genMatch |= 1<<2;
+    if ( gen_hadJ2.Pt() > 0 and (gen_hadJ2.DeltaR(jetP4s[1]) < 0.1 or gen_hadJ2.DeltaR(jetP4s[2]) < 0.1) ) b_genMatch |= 1<<1;
+    if ( gen_hadB.Pt()  > 0 and gen_hadB.DeltaR(jetP4s[3])  < 0.1 ) b_genMatch |= 1<<0;
 
     hLW_m->Fill( (leptonP4+metP4).M() );
     hLT_m->Fill( (leptonP4+metP4+jetP4s[0]).M() );

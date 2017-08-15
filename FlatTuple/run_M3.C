@@ -43,9 +43,14 @@ void run_DelphesM3()
   TChain chainTTBB("tree");
   chainTTBB.Add("../Delphes2Flat/ntuple_ttbb.root");
 
+  TChain chainTTJJ("tree");
+  chainTTJJ.Add("../Delphes2Flat/ntuple_ttbb.root");
+
   AnalyzeM3Delphes tFCNC(&chainFCNC);
   AnalyzeM3Delphes tTTBB(&chainTTBB);
+  AnalyzeM3Delphes tTTJJ(&chainTTJJ);
 
   tFCNC.Loop(mode, Form("%s/delphes_FCNC.root", algo), algo);
   tTTBB.Loop(mode, Form("%s/delphes_ttbb.root", algo), algo);
+  tTTJJ.Loop(mode, Form("%s/delphes_tt.root", algo), algo);
 }
