@@ -345,11 +345,11 @@ void AnalyzeKinFitDelphes::Loop(const string modeStr, const string outFileName)
       if ( mother < 0 or abs(gen_pdgId[mother]) != 6 ) continue; // Should be from top quark decay
 
       const int sibling1 = gen_dau1[mother], sibling2 = gen_dau2[mother];
-      if ( sibling2-sibling1 != 2 or sibling2 < 0 or sibling1 < 0 ) continue; // two siblingings (including itself), t->Wb or t->Hc
+      if ( sibling2-sibling1 != 1 or sibling2 < 0 or sibling1 < 0 ) continue; // two siblingings (including itself), t->Wb or t->Hc
       const int sibling = (sibling1 == int(i)) ? sibling2 : sibling1;
 
       int dau1 = gen_dau1[i], dau2 = gen_dau2[i];
-      if ( dau2-dau1 != 2 or dau1 < 0 or dau2 < 0 ) continue; // should have two daughters only
+      if ( dau2-dau1 != 1 or dau1 < 0 or dau2 < 0 ) continue; // should have two daughters only
       if ( abs(dau1) > abs(dau2) ) swap(dau1, dau2);
 
       if ( abs(gen_pdgId[dau1]) <= 5 and abs(gen_pdgId[dau2]) <= 5 ) { // W->jj or H->bb
