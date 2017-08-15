@@ -55,6 +55,7 @@ public :
    Float_t         gen_m[100];   //[gen_n]
    Short_t         gen_pdgId[100];   //[gen_n]
    Short_t         gen_q3[100];   //[gen_n]
+   Short_t         gen_mother[100];   //[gen_n]
    Short_t         gen_dau1[100];   //[gen_n]
    Short_t         gen_dau2[100];   //[gen_n]
    UShort_t        subjets_n;
@@ -98,6 +99,7 @@ public :
    TBranch        *b_gen_m;   //!
    TBranch        *b_gen_pdgId;   //!
    TBranch        *b_gen_q3;   //!
+   TBranch        *b_gen_mother;   //!
    TBranch        *b_gen_dau1;   //!
    TBranch        *b_gen_dau2;   //!
    TBranch        *b_subjets_n;
@@ -225,6 +227,7 @@ void AnalyzeM3Delphes::Init(TTree *tree)
    fChain->SetBranchAddress("gen_m", gen_m, &b_gen_m);
    fChain->SetBranchAddress("gen_pdgId", gen_pdgId, &b_gen_pdgId);
    fChain->SetBranchAddress("gen_q3", gen_q3, &b_gen_q3);
+   fChain->SetBranchAddress("gen_mother", gen_mother, &b_gen_mother);
    fChain->SetBranchAddress("gen_dau1", gen_dau1, &b_gen_dau1);
    fChain->SetBranchAddress("gen_dau2", gen_dau2, &b_gen_dau2);
    fChain->SetBranchAddress("subjets_n", &subjets_n, &b_subjets_n);
