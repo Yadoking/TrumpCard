@@ -6,6 +6,7 @@ if len(sys.argv) < 3:
     print sys.argv[0], "SAMPLETYPE SUFFIX"
     print '  sampleType = ["cmsTuple", "cmsTuple.withBtag", "delphes"]'
     print '  suffix     = ["kin", "m3", "deltaR"]'
+    print '  mvaType    = ["BDT", "DNN_TANH", "DNN_ReLU", "DNN_Mix", "Keras"]'
     sys.exit(1)
 
 sampleType0, suffix = sys.argv[1], sys.argv[2]
@@ -146,7 +147,7 @@ elif mvaType0.split('_', 1)[0] == "DNN":
             ("TrainingStrategy="+("|".join([",".join(x[1]) for x in dnnLayout]))),
         ]
         factory.BookMethod(loader, TMVA.Types.kDNN, name, ":".join(dnnOpts))
-elif mvaType0.split('_', 1)[0] == "Keras":
+elif mvaType0 == "Keras":
     #weightInit = keras.initializers.VarianceScaling(scale=0.05, mode='fan_in', distribution='normal', seed=None)
     weightInit = keras.initializers.glorot_uniform()
 
