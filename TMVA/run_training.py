@@ -6,7 +6,7 @@ if len(sys.argv) < 3:
     print sys.argv[0], "SAMPLETYPE SUFFIX"
     print '  sampleType = ["cmsTuple", "cmsTuple.withBtag", "delphes"]'
     print '  suffix     = ["kin", "m3", "deltaR"]'
-    print '  mvaType    = ["BDT", "DNN_TANH", "DNN_ReLU", "DNN_Mix", "Keras_TANH", "Keras_ReLU"]'
+    print '  mvaType    = ["BDT", "DNN_TANH", "DNN_ReLU", "Keras_TANH", "Keras_ReLU"]'
     sys.exit(1)
 
 sampleType0, suffix = sys.argv[1], sys.argv[2]
@@ -93,22 +93,23 @@ if mvaType0 == "BDT":
     #    [TMVA.Types.kLikelihood, "LikelihoodPCA", "!H:!V:!TransformOutput:PDFInterpol=Spline2:NSmoothSig[0]=20:NSmoothBkg[0]=20:NSmooth=5:NAvEvtPerBin=50:VarTransform=PCA"],
 
     #    [TMVA.Types.kKNN, "KNN", "H:nkNN=20:ScaleFrac=0.8:SigmaFact=1.0:Kernel=Gaus:UseKernel=F:UseWeight=T:!Trim"],
-    #    [TMVA.Types.kSVM, "SVM", "Gamma=0.25:Tol=0.001:VarTransform=D,G"],
+    #    [TMVA.Types.kSVM, "SVM", "Gamma=0.25:Tol=0.001:VarTransform=D,G,N"],
 
-    #    [TMVA.Types.kMLP, "MLP", "H:!V:NeuronType=tanh:VarTransform=D,G:NCycles=600:HiddenLayers=N+5:TestRate=5:!UseRegulator"],
-    #    [TMVA.Types.kMLP, "MLP2N", "H:!V:NeuronType=tanh:VarTransform=D,G:NCycles=600:HiddenLayers=N+N:TestRate=5:!UseRegulator"],
-
-        [TMVA.Types.kBDT, "BDT", "!H:!V:NTrees=850:MinNodeSize=2.5%:MaxDepth=3:BoostType=AdaBoost:AdaBoostBeta=0.5:UseBaggedBoost:BaggedSampleFraction=0.5:SeparationType=GiniIndex:nCuts=20"],
-        [TMVA.Types.kBDT, "BDT2k", "!H:!V:NTrees=2000:MinNodeSize=2.5%:MaxDepth=3:BoostType=AdaBoost:AdaBoostBeta=0.5:UseBaggedBoost:BaggedSampleFraction=0.5:SeparationType=GiniIndex:nCuts=20"],
-        [TMVA.Types.kBDT, "BDT300", "!H:!V:NTrees=300:MinNodeSize=2.5%:MaxDepth=3:BoostType=AdaBoost:AdaBoostBeta=0.5:UseBaggedBoost:BaggedSampleFraction=0.5:SeparationType=GiniIndex:nCuts=20"],
-
+    #    [TMVA.Types.kMLP, "MLP", "H:!V:NeuronType=tanh:VarTransform=D,G,N:NCycles=600:HiddenLayers=N+5:TestRate=5:!UseRegulator"],
+    #    [TMVA.Types.kMLP, "MLP2N", "H:!V:NeuronType=tanh:VarTransform=D,G,N:NCycles=600:HiddenLayers=N+N:TestRate=5:!UseRegulator"],
     ]
+
+    bdtOption = "!H:!V:MinNodeSize=5%:MaxDepth=3:SeparationType=GiniIndex:nCuts=20:BoostType=AdaBoost:AdaBoostBeta=0.5"
+    for nTree in [200, 400, 600, 800, 1000, 1200, 1400, 1600, 2000]:
+        methods.append([TMVA.Types.kBDT, "BDT_NTree%d" % nTree, "NTrees=%d" % nTree])
+        methods.append([TMVA.Types.kBDT, "BaggedBDT_NTree%d" % nTree, "NTrees=%d:UseBaggedBoost:BaggedSampleFraction=0.5" % nTree])
     for m in methods: factory.BookMethod(loader, *m)
+
 elif mvaType0.split('_', 1)[0] == "DNN":
     mvaType = mvaType0.split('_', 1)[-1]
 
     # For the DNN
-    dnnCommonOpt = "!H:V:ErrorStrategy=CROSSENTROPY:VarTransform=D,G:WeightInitialization=XAVIERUNIFORM"
+    dnnCommonOpt = "!H:V:ErrorStrategy=CROSSENTROPY:VarTransform=D,G,N:WeightInitialization=XAVIERUNIFORM"
     dnnCommonOpt += ":Architecture=CPU"
     trainingCommonOpt = ["Repetitions=1", "ConvergenceSteps=20", "Multithreading=True", "Regularization=L2",
                          "WeightDecay=1e-4", "BatchSize=256", "TestRepetitions=10",]
@@ -120,13 +121,11 @@ elif mvaType0.split('_', 1)[0] == "DNN":
         ["TANH|128", trainingCommonOpt+["LearningRate=1e-3","Momentum=0.0","DropConfig=0.0+0.0+0.0+0.0"]]
     ]
     for nX in [512, 256, 128, 64, 32, 16]:
-        for nY in range(3,11):
+        for nY in range(1,11):
             layers = []
             momConfig = "Momentum=0.9"
             rateConfig = "LearningRate=1e-1"
             dropConfig = "DropConfig=0.0+0.5+0.5+0.5"
-            if mvaType != "Mix": ftnName = mvaType
-            else: ftnName = "ReLU"
 
             for i in range(nY):
                 if i == nY-1:
@@ -135,7 +134,6 @@ elif mvaType0.split('_', 1)[0] == "DNN":
                     dropConfig = "DropConfig=0.0+0.0+0.0+0.0"
                 elif i == nY-2:
                     rateConfig = "LearningRate=1e-2"
-                if mvaType == "Mix" and i > nY-3: ftnName = "TANH"
 
                 layers.append(["%s|%d" % (ftnName, nX), trainingCommonOpt+[rateConfig, momConfig, dropConfig]])
             dnnLayouts["DNN_%s_X%d_Y%d" % (mvaType, nX, nY)] = layers
@@ -155,7 +153,7 @@ elif mvaType0.split('_', 1)[0] == "Keras":
     init='glorot_uniform'
 
     for nX in [512, 256, 128, 64, 32, 16]:
-        for nY in range(3,11):
+        for nY in range(1,11):
             model = keras.models.Sequential()
             model.add(keras.layers.core.Dense(nX, kernel_initializer=init, activation=activation, W_regularizer=keras.regularizers.l2(1e-5), input_dim=48))
             for i in range(nY):
@@ -163,13 +161,13 @@ elif mvaType0.split('_', 1)[0] == "Keras":
                 model.add(keras.layers.core.Dense(nX, kernel_initializer=init, activation=activation))
             model.add(keras.layers.core.Dense(2, kernel_initializer=init, activation='softmax'))
 
-            #model.compile(loss='categorical_crossentropy', optimizer=keras.optimizers.SGD(lr=0.01), metrics=['accuracy'])
-            model.compile(loss='MSE', optimizer=keras.optimizers.adam())
+            model.compile(loss='categorical_crossentropy', optimizer=keras.optimizers.SGD(lr=0.05), metrics=['accuracy'])
+            #model.compile(loss='MSE', optimizer=keras.optimizers.adam())
             modelFile = 'model_%s_X%d_Y%d.h5' % (mvaType, nX, nY)
             model.save(modelFile)
             model.summary()
 
-            factory.BookMethod(loader, TMVA.Types.kPyKeras, 'Keras_%s_X%d_Y%d' % (mvaType, nX, nY), "!H:V:VarTransform=D,G:FilenameModel=%s:NumEpochs=20:BatchSize=32" % modelFile)
+            factory.BookMethod(loader, TMVA.Types.kPyKeras, 'Keras_%s_X%d_Y%d' % (mvaType, nX, nY), "!H:V:VarTransform=D,G,N:FilenameModel=%s:NumEpochs=20:BatchSize=32" % modelFile)
 
 factory.TrainAllMethods()
 factory.TestAllMethods()
