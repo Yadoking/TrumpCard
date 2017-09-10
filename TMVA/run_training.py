@@ -6,7 +6,7 @@ if len(sys.argv) < 3:
     print sys.argv[0], "SAMPLETYPE SUFFIX"
     print '  sampleType = ["cmsTuple", "cmsTuple.withBtag", "delphes"]'
     print '  suffix     = ["kin", "m3", "deltaR"]'
-    print '  mvaType    = ["BDT", "DNN_TANH", "DNN_ReLU", "DNN_Mix", "Keras"]'
+    print '  mvaType    = ["BDT", "DNN_TANH", "DNN_ReLU", "DNN_Mix", "Keras_TANH", "Keras_ReLU"]'
     sys.exit(1)
 
 sampleType0, suffix = sys.argv[1], sys.argv[2]
@@ -93,10 +93,10 @@ if mvaType0 == "BDT":
     #    [TMVA.Types.kLikelihood, "LikelihoodPCA", "!H:!V:!TransformOutput:PDFInterpol=Spline2:NSmoothSig[0]=20:NSmoothBkg[0]=20:NSmooth=5:NAvEvtPerBin=50:VarTransform=PCA"],
 
     #    [TMVA.Types.kKNN, "KNN", "H:nkNN=20:ScaleFrac=0.8:SigmaFact=1.0:Kernel=Gaus:UseKernel=F:UseWeight=T:!Trim"],
-    #    [TMVA.Types.kSVM, "SVM", "Gamma=0.25:Tol=0.001:VarTransform=Norm"],
+    #    [TMVA.Types.kSVM, "SVM", "Gamma=0.25:Tol=0.001:VarTransform=D,G"],
 
-    #    [TMVA.Types.kMLP, "MLP", "H:!V:NeuronType=tanh:VarTransform=N:NCycles=600:HiddenLayers=N+5:TestRate=5:!UseRegulator"],
-    #    [TMVA.Types.kMLP, "MLP2N", "H:!V:NeuronType=tanh:VarTransform=N:NCycles=600:HiddenLayers=N+N:TestRate=5:!UseRegulator"],
+    #    [TMVA.Types.kMLP, "MLP", "H:!V:NeuronType=tanh:VarTransform=D,G:NCycles=600:HiddenLayers=N+5:TestRate=5:!UseRegulator"],
+    #    [TMVA.Types.kMLP, "MLP2N", "H:!V:NeuronType=tanh:VarTransform=D,G:NCycles=600:HiddenLayers=N+N:TestRate=5:!UseRegulator"],
 
         [TMVA.Types.kBDT, "BDT", "!H:!V:NTrees=850:MinNodeSize=2.5%:MaxDepth=3:BoostType=AdaBoost:AdaBoostBeta=0.5:UseBaggedBoost:BaggedSampleFraction=0.5:SeparationType=GiniIndex:nCuts=20"],
         [TMVA.Types.kBDT, "BDT2k", "!H:!V:NTrees=2000:MinNodeSize=2.5%:MaxDepth=3:BoostType=AdaBoost:AdaBoostBeta=0.5:UseBaggedBoost:BaggedSampleFraction=0.5:SeparationType=GiniIndex:nCuts=20"],
@@ -108,7 +108,7 @@ elif mvaType0.split('_', 1)[0] == "DNN":
     mvaType = mvaType0.split('_', 1)[-1]
 
     # For the DNN
-    dnnCommonOpt = "!H:V:ErrorStrategy=CROSSENTROPY:VarTransform=N:WeightInitialization=XAVIERUNIFORM"
+    dnnCommonOpt = "!H:V:ErrorStrategy=CROSSENTROPY:VarTransform=D,G:WeightInitialization=XAVIERUNIFORM"
     dnnCommonOpt += ":Architecture=CPU"
     trainingCommonOpt = ["Repetitions=1", "ConvergenceSteps=20", "Multithreading=True", "Regularization=L2",
                          "WeightDecay=1e-4", "BatchSize=256", "TestRepetitions=10",]
@@ -147,30 +147,29 @@ elif mvaType0.split('_', 1)[0] == "DNN":
             ("TrainingStrategy="+("|".join([",".join(x[1]) for x in dnnLayout]))),
         ]
         factory.BookMethod(loader, TMVA.Types.kDNN, name, ":".join(dnnOpts))
-elif mvaType0 == "Keras":
-    #weightInit = keras.initializers.VarianceScaling(scale=0.05, mode='fan_in', distribution='normal', seed=None)
-    weightInit = keras.initializers.glorot_uniform()
+elif mvaType0.split('_', 1)[0] == "Keras":
+    mvaType = mvaType0.split('_', 1)[-1]
+    if 'ReLU' in mvaType: activation = 'relu'
+    else: activation = 'tanh'
 
-    model = keras.models.Sequential()
-    model.add(keras.layers.core.Dense(300, kernel_initializer=weightInit, activation='relu', W_regularizer=keras.regularizers.l2(1e-5), input_dim=48))
-    model.add(keras.layers.core.Dense(500, kernel_initializer=weightInit, activation='relu'))
-    model.add(keras.layers.core.Dense(700, kernel_initializer=weightInit, activation='relu'))
-    model.add(keras.layers.core.Dense(700, kernel_initializer=weightInit, activation='relu'))
-    model.add(keras.layers.core.Dense(700, kernel_initializer=weightInit, activation='relu'))
-    model.add(keras.layers.core.Dense(700, kernel_initializer=weightInit, activation='relu'))
-    model.add(keras.layers.core.Dense(700, kernel_initializer=weightInit, activation='relu'))
-    model.add(keras.layers.core.Dense(700, kernel_initializer=weightInit, activation='relu'))
-    model.add(keras.layers.core.Dense(500, kernel_initializer=weightInit, activation='relu'))
-    model.add(keras.layers.core.Dense(500, kernel_initializer=weightInit, activation='relu'))
-    model.add(keras.layers.core.Dense(300, kernel_initializer=weightInit, activation='relu'))
-    model.add(keras.layers.core.Dense(100, kernel_initializer=weightInit, activation='relu'))
-    model.add(keras.layers.core.Dense(2, kernel_initializer=weightInit, activation='softmax'))
+    init='glorot_uniform'
 
-    model.compile(loss='categorical_crossentropy', optimizer=keras.optimizers.SGD(lr=0.01), metrics=['accuracy'])
-    model.save('model.h5')
-    model.summary()
+    for nX in [512, 256, 128, 64, 32, 16]:
+        for nY in range(3,11):
+            model = keras.models.Sequential()
+            model.add(keras.layers.core.Dense(nX, kernel_initializer=init, activation=activation, W_regularizer=keras.regularizers.l2(1e-5), input_dim=48))
+            for i in range(nY):
+                model.add(keras.layers.core.Dropout(0.5))
+                model.add(keras.layers.core.Dense(nX, kernel_initializer=init, activation=activation))
+            model.add(keras.layers.core.Dense(2, kernel_initializer=init, activation='softmax'))
 
-    factory.BookMethod(loader, TMVA.Types.kPyKeras, 'Keras', "!H:V:VarTransform=N:FilenameModel=model.h5:NumEpochs=20:BatchSize=32")
+            #model.compile(loss='categorical_crossentropy', optimizer=keras.optimizers.SGD(lr=0.01), metrics=['accuracy'])
+            model.compile(loss='MSE', optimizer=keras.optimizers.adam())
+            modelFile = 'model_%s_X%d_Y%d.h5' % (mvaType, nX, nY)
+            model.save(modelFile)
+            model.summary()
+
+            factory.BookMethod(loader, TMVA.Types.kPyKeras, 'Keras_%s_X%d_Y%d' % (mvaType, nX, nY), "!H:V:VarTransform=D,G:FilenameModel=%s:NumEpochs=20:BatchSize=32" % modelFile)
 
 factory.TrainAllMethods()
 factory.TestAllMethods()
