@@ -74,8 +74,8 @@ hAUC.SetMinimum(0.5)
 cAUC2D_DNN = TCanvas("cAUC2D_DNN", "cAUC2D_DNN", 500, 500)
 cAUC2D_Keras = TCanvas("cAUC2D_Keras", "cAUC2D_Keras", 500, 500)
 dnnFtns, dnnNodes = ["TANH", "ReLU"], [16,32,64,128,256,512]
-hAUC2D_DNN= TH2D("hAUC2D_DNN", "hAUC2D_DNN;Number of nodes;Number of Layers", len(dnnFtns)*len(dnnNodes), 0, len(dnnFtns)*len(dnnNodes), 10, 1, 11)
-hAUC2D_Keras= TH2D("hAUC2D_Keras", "hAUC2D_Keras;Number of nodes;Number of Layers", len(dnnFtns)*len(dnnNodes), 0, len(dnnFtns)*len(dnnNodes), 10, 1, 11)
+hAUC2D_DNN= TH2D("hAUC2D_DNN", "hAUC2D_DNN;Number of nodes;Number of Layers", len(dnnFtns)*len(dnnNodes), 0, len(dnnFtns)*len(dnnNodes), 20, 1, 21)
+hAUC2D_Keras= TH2D("hAUC2D_Keras", "hAUC2D_Keras;Number of nodes;Number of Layers", len(dnnFtns)*len(dnnNodes), 0, len(dnnFtns)*len(dnnNodes), 20, 1, 21)
 for iw, w in enumerate(dnnFtns):
     for jx, x in enumerate(dnnNodes):
         hAUC2D_DNN.GetXaxis().SetBinLabel(iw*len(dnnNodes)+jx+1, "%s_%d" % (w, x))
@@ -101,7 +101,7 @@ for i, (name, (grp, auc)) in enumerate(grps.iteritems()):
         x, y = int(x[1:]), int(y[1:])
         w = dnnFtns.index(w)
         xbin = w*len(dnnNodes)+dnnNodes.index(x)+1
-        ybin = range(1,11).index(y)+1
+        ybin = range(1,21).index(y)+1
 
         hAUC2D_DNN.SetBinContent(xbin, ybin, auc)
 
@@ -110,7 +110,7 @@ for i, (name, (grp, auc)) in enumerate(grps.iteritems()):
         x, y = int(x[1:]), int(y[1:])
         w = dnnFtns.index(w)
         xbin = w*len(dnnNodes)+dnnNodes.index(x)+1
-        ybin = range(1,11).index(y)+1
+        ybin = range(1,21).index(y)+1
 
         hAUC2D_Keras.SetBinContent(xbin, ybin, auc)
 
