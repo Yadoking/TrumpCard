@@ -121,7 +121,7 @@ elif mvaType0.split('_', 1)[0] == "DNN":
         ["TANH|128", trainingCommonOpt+["LearningRate=1e-3","Momentum=0.0","DropConfig=0.0+0.0+0.0+0.0"]]
     ]
     for nX in [512, 256, 128, 64, 32, 16]:
-        for nY in range(1,21):
+        for nY in range(1,26):
             layers = []
             momConfig = "Momentum=0.9"
             rateConfig = "LearningRate=1e-1"
@@ -153,7 +153,7 @@ elif mvaType0.split('_', 1)[0] == "Keras":
     init='glorot_uniform'
 
     for nX in [512, 256, 128, 64, 32, 16]:
-        for nY in range(1,21):
+        for nY in range(1,26):
             model = keras.models.Sequential()
             model.add(keras.layers.core.Dense(nX, kernel_initializer=init, activation=activation, W_regularizer=keras.regularizers.l2(1e-5), input_dim=48))
             for i in range(nY):
