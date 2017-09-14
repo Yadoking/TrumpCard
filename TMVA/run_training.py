@@ -107,9 +107,10 @@ if mvaType0 == "BDT":
 
 elif mvaType0.split('_', 1)[0] == "DNN":
     mvaType = mvaType0.split('_', 1)[-1]
+    ftnName = mvaType.split('_')[0]
 
     # For the DNN
-    dnnCommonOpt = "!H:V:ErrorStrategy=CROSSENTROPY:VarTransform=D,G,N:WeightInitialization=XAVIERUNIFORM"
+    dnnCommonOpt = "!H:V:ErrorStrategy=CROSSENTROPY:VarTransform=D,N:WeightInitialization=XAVIERUNIFORM"
     dnnCommonOpt += ":Architecture=CPU"
     trainingCommonOpt = ["Repetitions=1", "ConvergenceSteps=20", "Multithreading=True", "Regularization=L2",
                          "WeightDecay=1e-4", "BatchSize=256", "TestRepetitions=10",]
@@ -151,23 +152,27 @@ elif mvaType0.split('_', 1)[0] == "Keras":
     else: activation = 'tanh'
 
     init='glorot_uniform'
+    #init='glorot_normal'
+    #init='random_normal'
 
     for nX in [512, 256, 128, 64, 32, 16]:
-        for nY in range(1,11):
+        for nY in range(1,26):
             model = keras.models.Sequential()
-            model.add(keras.layers.core.Dense(nX, kernel_initializer=init, activation=activation, W_regularizer=keras.regularizers.l2(1e-5), input_dim=48))
+            model.add(keras.layers.core.Dense(nX, kernel_initializer=init, activation=activation, kernel_regularizer=keras.regularizers.l2(1e-5), input_dim=48))
             for i in range(nY):
                 model.add(keras.layers.core.Dropout(0.5))
-                model.add(keras.layers.core.Dense(nX, kernel_initializer=init, activation=activation))
-            model.add(keras.layers.core.Dense(2, kernel_initializer=init, activation='softmax'))
+                model.add(keras.layers.core.Dense(nX, kernel_initializer=init, activation=activation, kernel_regularizer=keras.regularizers.l2(1e-5)))
+            model.add(keras.layers.core.Dense(nX, kernel_initializer=init, kernel_regularizer=keras.regularizers.l2(1e-5), activation='sigmoid'))
+            model.add(keras.layers.core.Dense(2, kernel_initializer=init, kernel_regularizer=keras.regularizers.l2(1e-5), activation='softmax'))
 
-            model.compile(loss='categorical_crossentropy', optimizer=keras.optimizers.SGD(lr=0.05), metrics=['accuracy'])
-            #model.compile(loss='MSE', optimizer=keras.optimizers.adam())
+            optimizer = 'adam'#keras.optimizers.SGD(lr=0.01, decay=1e-6, momentum=0.9, nesterov=False)
+            #model.compile(loss='binary_crossentropy', optimizer=optimizer, metrics=['categorical_accuracy'])
+            model.compile(loss='categorical_crossentropy', optimizer=optimizer, metrics=['accuracy'])
             modelFile = 'model_%s_X%d_Y%d.h5' % (mvaType, nX, nY)
             model.save(modelFile)
-            model.summary()
+            #model.summary()
 
-            factory.BookMethod(loader, TMVA.Types.kPyKeras, 'Keras_%s_X%d_Y%d' % (mvaType, nX, nY), "!H:V:VarTransform=D,G,N:FilenameModel=%s:NumEpochs=20:BatchSize=32" % modelFile)
+            factory.BookMethod(loader, TMVA.Types.kPyKeras, 'Keras_%s_X%d_Y%d' % (mvaType, nX, nY), "!H:V:VarTransform=D,N:FilenameModel=%s:NumEpochs=5:BatchSize=16" % modelFile)
 
 factory.TrainAllMethods()
 factory.TestAllMethods()
