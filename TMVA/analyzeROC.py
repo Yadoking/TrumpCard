@@ -12,6 +12,9 @@ gROOT.ProcessLine(".L ../FlatTuple/tdrstyle.C")
 gROOT.ProcessLine("setTDRStyle()")
 gStyle.SetOptTitle(0)
 gStyle.SetOptStat(0)
+gStyle.SetPaintTextFormat(".3f")
+#gStyle.SetPalette(kDarkBodyRadiator)
+gStyle.SetPalette(kRainBow)
 
 grps = OrderedDict()
 colors = [kRed, kBlue+1, kGreen+3, kOrange-3, kMagenta+2]
@@ -71,8 +74,8 @@ hAUC.SetMinimum(0.5)
 cAUC2D_DNN = TCanvas("cAUC2D_DNN", "cAUC2D_DNN", 500, 500)
 cAUC2D_Keras = TCanvas("cAUC2D_Keras", "cAUC2D_Keras", 500, 500)
 dnnFtns, dnnNodes = ["TANH", "ReLU"], [16,32,64,128,256,512]
-hAUC2D_DNN= TH2D("hAUC2D_DNN", "hAUC2D_DNN;Number of nodes;Number of Layers", len(dnnFtns)*len(dnnNodes), 0, len(dnnFtns)*len(dnnNodes), 11, 1, 11)
-hAUC2D_Keras= TH2D("hAUC2D_Keras", "hAUC2D_Keras;Number of nodes;Number of Layers", len(dnnFtns)*len(dnnNodes), 0, len(dnnFtns)*len(dnnNodes), 11, 1, 11)
+hAUC2D_DNN= TH2D("hAUC2D_DNN", "hAUC2D_DNN;Number of nodes;Number of Layers", len(dnnFtns)*len(dnnNodes), 0, len(dnnFtns)*len(dnnNodes), 20, 1, 26)
+hAUC2D_Keras= TH2D("hAUC2D_Keras", "hAUC2D_Keras;Number of nodes;Number of Layers", len(dnnFtns)*len(dnnNodes), 0, len(dnnFtns)*len(dnnNodes), 20, 1, 26)
 for iw, w in enumerate(dnnFtns):
     for jx, x in enumerate(dnnNodes):
         hAUC2D_DNN.GetXaxis().SetBinLabel(iw*len(dnnNodes)+jx+1, "%s_%d" % (w, x))
@@ -98,7 +101,7 @@ for i, (name, (grp, auc)) in enumerate(grps.iteritems()):
         x, y = int(x[1:]), int(y[1:])
         w = dnnFtns.index(w)
         xbin = w*len(dnnNodes)+dnnNodes.index(x)+1
-        ybin = range(1,11).index(y)+1
+        ybin = range(1,26).index(y)+1
 
         hAUC2D_DNN.SetBinContent(xbin, ybin, auc)
 
@@ -107,7 +110,7 @@ for i, (name, (grp, auc)) in enumerate(grps.iteritems()):
         x, y = int(x[1:]), int(y[1:])
         w = dnnFtns.index(w)
         xbin = w*len(dnnNodes)+dnnNodes.index(x)+1
-        ybin = range(1,11).index(y)+1
+        ybin = range(1,26).index(y)+1
 
         hAUC2D_Keras.SetBinContent(xbin, ybin, auc)
 
@@ -140,12 +143,24 @@ cROC.SetGridy()
 leg.Draw()
 
 cAUC.cd()
+hAUC.SetMinimum(0.72)
+hAUC.SetMaximum(0.75)
 hAUC.Draw()
 
 cAUC2D_DNN.cd()
+cAUC2D_DNN.SetRightMargin(0.16)
+cAUC2D_DNN.SetLeftMargin(0.14)
+hAUC2D_DNN.GetYaxis().SetTitleOffset(1)
+hAUC2D_DNN.SetMinimum(0.72)
+hAUC2D_DNN.SetMaximum(0.75)
 hAUC2D_DNN.Draw("COLZTEXT")
 
 cAUC2D_Keras.cd()
+cAUC2D_Keras.SetRightMargin(0.16)
+cAUC2D_Keras.SetLeftMargin(0.14)
+hAUC2D_Keras.GetYaxis().SetTitleOffset(1)
+hAUC2D_Keras.SetMinimum(0.72)
+hAUC2D_Keras.SetMaximum(0.75)
 hAUC2D_Keras.Draw("COLZTEXT")
 
 cBkgAtWP.cd()
@@ -153,6 +168,7 @@ hBkgAt90.Draw()
 hBkgAt80.Draw("same")
 legBkgAtWP.Draw()
 
-for c in [cROC, cAUC, cBkgAtWP]:
+for c in [cROC, cAUC, cBkgAtWP, cAUC2D_DNN, cAUC2D_Keras]:
     c.Modified()
     c.Update()
+    c.Print("%s.png" % c.GetName())

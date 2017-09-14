@@ -122,7 +122,7 @@ elif mvaType0.split('_', 1)[0] == "DNN":
         ["TANH|128", trainingCommonOpt+["LearningRate=1e-3","Momentum=0.0","DropConfig=0.0+0.0+0.0+0.0"]]
     ]
     for nX in [512, 256, 128, 64, 32, 16]:
-        for nY in range(1,11):
+        for nY in range(1,26):
             layers = []
             momConfig = "Momentum=0.9"
             rateConfig = "LearningRate=1e-1"
