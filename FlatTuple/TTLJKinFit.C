@@ -12,7 +12,7 @@ TTLJKinFitFtn::TTLJKinFitFtn(const double hadW_m, const double hadT_m,
 {
 }
 
-TTLJKinFitFtn::IBaseFunctionMultiDim* TTLJKinFitFtn::Clone() const
+ROOT::Math::IBaseFunctionMultiDim* TTLJKinFitFtn::Clone() const
 {
   TTLJKinFitFtn* obj = new TTLJKinFitFtn(hadW_m_, hadT_m_, lepW_m_, lepT_m_);
   for ( size_t i=0; i<6; ++i ) obj->lvs_[i] = this->lvs_[i];

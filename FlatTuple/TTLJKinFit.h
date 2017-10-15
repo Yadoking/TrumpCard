@@ -10,7 +10,7 @@ struct TTLJKinFitFtn : public ROOT::Math::IBaseFunctionMultiDim
 {
   TTLJKinFitFtn(const double hadW_m, const double hadT_m,
                 const double lepW_m, const double lepT_m);
-  IBaseFunctionMultiDim* Clone() const override;
+  ROOT::Math::IBaseFunctionMultiDim* Clone() const override;
 
   unsigned int NDim() const override;
   double DoEval(const double* x) const override;
