@@ -29,6 +29,12 @@ else: mvaType0 = sys.argv[3]
 from ROOT import *
 import google.protobuf
 import keras
+hasCUDA = os.path.exists('/usr/bin/nvidia-smi') ## Can use GPU acceleration
+if hasCUDA:
+    import tensorflow as tf
+    config = tf.ConfigProto()
+    config.gpu_options.visible_device_list = "0,1"
+    keras.backend.tensorflow_backend.set_session(tf.Session(config=config))
 
 TMVA.Tools.Instance()
 TMVA.PyMethodBase.PyInitialize()
@@ -68,8 +74,8 @@ if doBtag and sampleType == "cmsTuple":
 loader.AddSpectator("vertex_n", "nVertex")
 
 ## Load input files
-fsig = TFile("/home/jhgoh/work/Delphes/TrumpCard/FlatTuple/%s/%s_FCNC.root" % (suffix, sampleType))
-fbkg = TFile("/home/jhgoh/work/Delphes/TrumpCard/FlatTuple/%s/%s_tt.root" % (suffix, sampleType))
+fsig = TFile("../FlatTuple/%s/%s_FCNC.root" % (suffix, sampleType))
+fbkg = TFile("../FlatTuple/%s/%s_tt.root" % (suffix, sampleType))
 tsig = fsig.Get("tree")
 tbkg = fbkg.Get("tree")
 
@@ -118,7 +124,10 @@ elif mvaType0.split('_', 1)[0] == "DNN":
 
     # For the DNN
     dnnCommonOpt = "!H:V:ErrorStrategy=CROSSENTROPY:VarTransform=D,N:WeightInitialization=XAVIERUNIFORM"
-    dnnCommonOpt += ":Architecture=CPU"
+    if hasCUDA:
+        dnnCommonOpt += ":Architecture=GPU"
+    else:
+        dnnCommonOpt += ":Architecture=CPU"
     trainingCommonOpt = ["Repetitions=1", "ConvergenceSteps=20", "Multithreading=True", "Regularization=L2",
                          "WeightDecay=1e-4", "BatchSize=128", "TestRepetitions=10",]
 
@@ -165,16 +174,16 @@ elif mvaType0.split('_', 1)[0] == "Keras":
     for nX in [512, 256, 128, 64, 32, 16]:
         for nY in range(1,21):
             model = keras.models.Sequential()
-            model.add(keras.layers.core.Dense(nX, init=init, activation=activation, input_dim=48))
-            #model.add(keras.layers.normalization.BatchNormalization())
+            model.add(keras.layers.core.Dense(nX, init=init, activation=activation, kernel_regularizer=keras.regularizers.l2(1e-6), input_dim=48))
+            model.add(keras.layers.normalization.BatchNormalization())
 
             for i in range(nY):
                 model.add(keras.layers.core.Dropout(0.5))
                 model.add(keras.layers.core.Dense(nX, init=init, activation=activation)) 
-                #model.add(keras.layers.normalization.BatchNormalization())
-            model.add(keras.layers.core.Dense(nX, init=init, activation='linear'))
+                model.add(keras.layers.normalization.BatchNormalization())
             model.add(keras.layers.core.Dropout(0.5))
-            #model.add(keras.layers.normalization.BatchNormalization())
+            model.add(keras.layers.core.Dense(nX, init=init, activation='linear'))
+            model.add(keras.layers.normalization.BatchNormalization())
             model.add(keras.layers.core.Dense(2, activation='softmax'))
 
             #optimizer = keras.optimizers.SGD(lr=1e-3, decay=1e-9, momentum=0.5, nesterov=True)
@@ -185,7 +194,7 @@ elif mvaType0.split('_', 1)[0] == "Keras":
             model.save(modelFile)
             #model.summary()
 
-            factory.BookMethod(loader, TMVA.Types.kPyKeras, 'Keras_%s_X%d_Y%d' % (mvaType, nX, nY), "!H:V:VarTransform=D,N:FilenameModel=%s:NumEpochs=100:BatchSize=1024" % modelFile)
+            factory.BookMethod(loader, TMVA.Types.kPyKeras, 'Keras_%s_X%d_Y%d' % (mvaType, nX, nY), "!H:V:VarTransform=D,N:FilenameModel=%s:NumEpochs=100:BatchSize=128" % modelFile)
 
 factory.TrainAllMethods()
 factory.TestAllMethods()
