@@ -99,10 +99,17 @@ if mvaType0 == "BDT":
     #    [TMVA.Types.kMLP, "MLP2N", "H:!V:NeuronType=tanh:VarTransform=D,G,N:NCycles=600:HiddenLayers=N+N:TestRate=5:!UseRegulator"],
     ]
 
-    bdtOption = "!H:!V:MinNodeSize=5%:MaxDepth=3:SeparationType=GiniIndex:nCuts=20:BoostType=AdaBoost:AdaBoostBeta=0.5"
-    for nTree in [200, 400, 600, 800, 1000, 1200, 1400, 1600, 2000]:
-        methods.append([TMVA.Types.kBDT, "BDT_NTree%d" % nTree, "NTrees=%d" % nTree])
-        methods.append([TMVA.Types.kBDT, "BaggedBDT_NTree%d" % nTree, "NTrees=%d:UseBaggedBoost:BaggedSampleFraction=0.5" % nTree])
+    bdtOption = "!H:!V:BoostType=AdaBoost:AdaBoostBeta=0.5"
+    for sepType in ["GiniIndex", "CrossEntropy"]:
+        for nCuts in [5, 10]:
+            for maxDepth in [2,3,4]:#,5,7,10]:
+                for minNodeSize in [2, 5, 10]:#, 20]:
+                    for nTree in [10, 20, 30, 50, 100, 200, 500, 1000]:#, 1200, 1400, 1600, 2000]:
+                        opt = [bdtOption, "NTrees=%d" % nTree, "SeparationType=%s" % sepType,
+                               "nCuts=%d" % nCuts, "MaxDepth=%d" % maxDepth, "MinNodeSize=%d%%" % minNodeSize]
+                        suffix = "%s_nCuts%d_maxDepth%d_minNode%d_nTree%d" % (sepType, nCuts, maxDepth, minNodeSize, nTree)
+                        methods.append([TMVA.Types.kBDT, "BDT_%s" % suffix, ":".join(opt)])
+                        methods.append([TMVA.Types.kBDT, "BaggedBDT_%s" % suffix, ":".join(opt)+":UseBaggedBoost:BaggedSampleFraction=0.5"])
     for m in methods: factory.BookMethod(loader, *m)
 
 elif mvaType0.split('_', 1)[0] == "DNN":
@@ -113,7 +120,7 @@ elif mvaType0.split('_', 1)[0] == "DNN":
     dnnCommonOpt = "!H:V:ErrorStrategy=CROSSENTROPY:VarTransform=D,N:WeightInitialization=XAVIERUNIFORM"
     dnnCommonOpt += ":Architecture=CPU"
     trainingCommonOpt = ["Repetitions=1", "ConvergenceSteps=20", "Multithreading=True", "Regularization=L2",
-                         "WeightDecay=1e-4", "BatchSize=256", "TestRepetitions=10",]
+                         "WeightDecay=1e-4", "BatchSize=128", "TestRepetitions=10",]
 
     dnnLayouts = OrderedDict()
     dnnLayouts["DNN_Default"] = [
@@ -122,7 +129,7 @@ elif mvaType0.split('_', 1)[0] == "DNN":
         ["TANH|128", trainingCommonOpt+["LearningRate=1e-3","Momentum=0.0","DropConfig=0.0+0.0+0.0+0.0"]]
     ]
     for nX in [512, 256, 128, 64, 32, 16]:
-        for nY in range(1,26):
+        for nY in range(1,21):
             layers = []
             momConfig = "Momentum=0.9"
             rateConfig = "LearningRate=1e-1"
@@ -156,23 +163,29 @@ elif mvaType0.split('_', 1)[0] == "Keras":
     #init='random_normal'
 
     for nX in [512, 256, 128, 64, 32, 16]:
-        for nY in range(1,26):
+        for nY in range(1,21):
             model = keras.models.Sequential()
-            model.add(keras.layers.core.Dense(nX, kernel_initializer=init, activation=activation, kernel_regularizer=keras.regularizers.l2(1e-5), input_dim=48))
+            model.add(keras.layers.core.Dense(nX, init=init, activation=activation, input_dim=48))
+            #model.add(keras.layers.normalization.BatchNormalization())
+
             for i in range(nY):
                 model.add(keras.layers.core.Dropout(0.5))
-                model.add(keras.layers.core.Dense(nX, kernel_initializer=init, activation=activation, kernel_regularizer=keras.regularizers.l2(1e-5)))
-            model.add(keras.layers.core.Dense(nX, kernel_initializer=init, kernel_regularizer=keras.regularizers.l2(1e-5), activation='sigmoid'))
-            model.add(keras.layers.core.Dense(2, kernel_initializer=init, kernel_regularizer=keras.regularizers.l2(1e-5), activation='softmax'))
+                model.add(keras.layers.core.Dense(nX, init=init, activation=activation)) 
+                #model.add(keras.layers.normalization.BatchNormalization())
+            model.add(keras.layers.core.Dense(nX, init=init, activation='linear'))
+            model.add(keras.layers.core.Dropout(0.5))
+            #model.add(keras.layers.normalization.BatchNormalization())
+            model.add(keras.layers.core.Dense(2, activation='softmax'))
 
-            optimizer = 'adam'#keras.optimizers.SGD(lr=0.01, decay=1e-6, momentum=0.9, nesterov=False)
-            #model.compile(loss='binary_crossentropy', optimizer=optimizer, metrics=['categorical_accuracy'])
-            model.compile(loss='categorical_crossentropy', optimizer=optimizer, metrics=['accuracy'])
+            #optimizer = keras.optimizers.SGD(lr=1e-3, decay=1e-9, momentum=0.5, nesterov=True)
+            optimizer = keras.optimizers.Adam(lr=1e-3, beta_1=0.9, beta_2=0.999)
+            model.compile(loss='binary_crossentropy', optimizer=optimizer, metrics=['categorical_accuracy'])
+            #model.compile(loss='categorical_crossentropy', optimizer=optimizer, metrics=['accuracy'])
             modelFile = 'model_%s_X%d_Y%d.h5' % (mvaType, nX, nY)
             model.save(modelFile)
             #model.summary()
 
-            factory.BookMethod(loader, TMVA.Types.kPyKeras, 'Keras_%s_X%d_Y%d' % (mvaType, nX, nY), "!H:V:VarTransform=D,N:FilenameModel=%s:NumEpochs=5:BatchSize=16" % modelFile)
+            factory.BookMethod(loader, TMVA.Types.kPyKeras, 'Keras_%s_X%d_Y%d' % (mvaType, nX, nY), "!H:V:VarTransform=D,N:FilenameModel=%s:NumEpochs=100:BatchSize=1024" % modelFile)
 
 factory.TrainAllMethods()
 factory.TestAllMethods()
