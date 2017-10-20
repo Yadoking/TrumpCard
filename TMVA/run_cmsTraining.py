@@ -155,11 +155,6 @@ elif mvaAlgo == "DNN":
                          "WeightDecay=1e-4", "BatchSize=128", "TestRepetitions=10",]
 
     dnnLayouts = OrderedDict()
-    dnnLayouts["DNN_Default"] = [
-        ["TANH|128", trainingCommonOpt+["LearningRate=1e-1","Momentum=0.9","DropConfig=0.0+0.5+0.5+0.5"]],
-        ["TANH|128", trainingCommonOpt+["LearningRate=1e-2","Momentum=0.9","DropConfig=0.0+0.0+0.0+0.0"]],
-        ["TANH|128", trainingCommonOpt+["LearningRate=1e-3","Momentum=0.0","DropConfig=0.0+0.0+0.0+0.0"]]
-    ]
     for nY in range(20,0,-1):
         layers = []
         momConfig = "Momentum=0.9"
@@ -191,7 +186,7 @@ elif mvaAlgo == "Keras":
     if hasCUDA:
         import tensorflow as tf
         config = tf.ConfigProto()
-        config.gpu_options.visible_device_list = "0,1"
+        config.gpu_options.visible_device_list = "0"
         keras.backend.tensorflow_backend.set_session(tf.Session(config=config))
 
     if 'ReLU' == ftnName: activation = 'relu'
@@ -219,11 +214,11 @@ elif mvaAlgo == "Keras":
         optimizer = keras.optimizers.Adam(lr=1e-3, beta_1=0.9, beta_2=0.999)
         model.compile(loss='binary_crossentropy', optimizer=optimizer, metrics=['categorical_accuracy'])
         #model.compile(loss='categorical_crossentropy', optimizer=optimizer, metrics=['accuracy'])
-        modelFile = 'model_%s_X%d_Y%d.h5' % (mvaType, nX, nY)
+        modelFile = 'model_%s_X%d_Y%d.h5' % (ftnName, nX, nY)
         model.save(modelFile)
         #model.summary()
 
-        factory.BookMethod(loader, TMVA.Types.kPyKeras, 'Keras_%s_X%d_Y%d' % (mvaType, nX, nY), "!H:V:FilenameModel=%s:NumEpochs=100:BatchSize=128" % modelFile)
+        factory.BookMethod(loader, TMVA.Types.kPyKeras, 'Keras_%s_X%d_Y%d' % (ftnName, nX, nY), "!H:V:FilenameModel=%s:NumEpochs=30:BatchSize=128:VarTransform=D,G,N" % modelFile)
 
 factory.TrainAllMethods()
 factory.TestAllMethods()
