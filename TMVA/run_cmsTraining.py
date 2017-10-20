@@ -197,7 +197,7 @@ elif mvaAlgo == "Keras":
 
     for nY in range(20,0,-1):
         model = keras.models.Sequential()
-        model.add(keras.layers.core.Dense(nX, init=init, activation=activation, kernel_regularizer=keras.regularizers.l2(1e-6), input_dim=nVars))
+        model.add(keras.layers.core.Dense(nX, init=init, activation=activation, kernel_regularizer=keras.regularizers.l2(1e-3), input_dim=nVars))
         model.add(keras.layers.normalization.BatchNormalization())
 
         for i in range(nY):
@@ -205,19 +205,20 @@ elif mvaAlgo == "Keras":
             model.add(keras.layers.core.Dense(nX, init=init, activation=activation)) 
             model.add(keras.layers.normalization.BatchNormalization())
         model.add(keras.layers.core.Dropout(0.5))
-        model.add(keras.layers.core.Dense(nX, init=init, activation='linear'))
+        model.add(keras.layers.core.Dense(nX, init=init, activation=activation))
         model.add(keras.layers.normalization.BatchNormalization())
         model.add(keras.layers.core.Dense(2, activation='softmax'))
 
         #optimizer = keras.optimizers.SGD(lr=1e-3, decay=1e-9, momentum=0.5, nesterov=True)
-        optimizer = keras.optimizers.Adam(lr=1e-3, beta_1=0.9, beta_2=0.999)
-        model.compile(loss='binary_crossentropy', optimizer=optimizer, metrics=['categorical_accuracy'])
+        optimizer = keras.optimizers.Adam(lr=1e-3, decay=1e-3, beta_1=0.9, beta_2=0.999)
+        model.compile(loss='binary_crossentropy', optimizer=optimizer, metrics=['binary_accuracy'])
         #model.compile(loss='categorical_crossentropy', optimizer=optimizer, metrics=['accuracy'])
         modelFile = 'model_%s_X%d_Y%d.h5' % (ftnName, nX, nY)
         model.save(modelFile)
         #model.summary()
 
-        factory.BookMethod(loader, TMVA.Types.kPyKeras, 'Keras_%s_X%d_Y%d' % (ftnName, nX, nY), "!H:V:FilenameModel=%s:NumEpochs=30:BatchSize=128:VarTransform=D,G,N" % modelFile)
+        #factory.BookMethod(loader, TMVA.Types.kPyKeras, 'Keras_%s_X%d_Y%d' % (ftnName, nX, nY), "!H:V:FilenameModel=%s:NumEpochs=30:BatchSize=128:VarTransform=D,G,N" % modelFile)
+        factory.BookMethod(loader, TMVA.Types.kPyKeras, 'Keras_%s_X%d_Y%d' % (ftnName, nX, nY), "!H:V:FilenameModel=%s:NumEpochs=30:BatchSize=1000:VarTransform=D,G" % modelFile)
 
 factory.TrainAllMethods()
 factory.TestAllMethods()
