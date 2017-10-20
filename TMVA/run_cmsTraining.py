@@ -23,7 +23,8 @@ TMVA.PyMethodBase.PyInitialize()
 fout = TFile("mva_%s.root" % (mvaType0), "recreate")
 
 factory = TMVA.Factory("TMVAClassification", fout,
-                       "!V:!Silent:Color:DrawProgressBar:Transformations=I;D;P;G:AnalysisType=Classification" )
+                       #"!V:!Silent:Color:DrawProgressBar:Transformations=I;D;P;G:AnalysisType=Classification" )
+                       "!V:!Silent:Transformations=I;D;P;G:AnalysisType=Classification" )
 
 loader = TMVA.DataLoader("mva")
 intVars = [
@@ -105,7 +106,8 @@ bkgCut = TCut("missingET > 0 && cjetPt > 0 && jet1csv > 0 &&  jet2csv > 0 &&  je
 loader.PrepareTrainingAndTestTree(
     sigCut, bkgCut,
     #"nTrain_Signal=1000:nTrain_Background=1000:SplitMode=Random:NormMode=NumEvents:!V"
-    "nTrain_Signal=30000:nTrain_Background=100000:SplitMode=Random:NormMode=NumEvents:!V"
+    #"nTrain_Signal=30000:nTrain_Background=100000:SplitMode=Random:NormMode=NumEvents:!V"
+    "nTrain_Signal=30000:nTrain_Background=440000:SplitMode=Random:NormMode=NumEvents:!V"
 )
 
 if mvaAlgo == "BDT":
@@ -124,16 +126,16 @@ if mvaAlgo == "BDT":
 
     bdtOption = "!H:!V:BoostType=AdaBoost:AdaBoostBeta=0.5"
     for sepType in ["GiniIndex"]:#, "CrossEntropy"]:
-        for nCuts in [20, 5, 10, 30, 40]:#[50, 60, 80]:
-            for maxDepth in [2,3,4,5,7,10]:
+        for nCuts in [10, 20, 30, 40, 50, 60, 80]:
+            for maxDepth in [2,3,4,5]:
                 for minNodeSize in [2.5, 1,2,3,5,10,20]:
-                    for nTree in [850, 500, 1000, 10, 20, 30, 50, 100, 200]:
+                    for nTree in [850, 500, 1000, 100, 200]:
                         opt = [bdtOption, "NTrees=%d" % nTree, "SeparationType=%s" % sepType,
                                "nCuts=%d" % nCuts, "MaxDepth=%d" % maxDepth, "MinNodeSize=%g%%" % minNodeSize]
                         suffix = "%s_nCuts%d_maxDepth%d_minNode%g_nTree%d" % (sepType, nCuts, maxDepth, minNodeSize, nTree)
                         suffix = suffix.replace('.','p')
                         methods.append([TMVA.Types.kBDT, "BDT_%s" % suffix, ":".join(opt)])
-                        methods.append([TMVA.Types.kBDT, "BaggedBDT_%s" % suffix, ":".join(opt)+":UseBaggedBoost:BaggedSampleFraction=0.5"])
+                        #methods.append([TMVA.Types.kBDT, "BaggedBDT_%s" % suffix, ":".join(opt)+":UseBaggedBoost:BaggedSampleFraction=0.5"])
     if bdtParIndex.isdigit():
         bdtIndex = int(bdtParIndex)
         factory.BookMethod(loader, *methods[bdtIndex])
