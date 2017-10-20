@@ -14,6 +14,7 @@ if mvaAlgo == 'BDT':
 elif mvaAlgo in ('DNN', 'Keras'):
     ftnName, nX = mvaType0.split('_')[1:]
     nX = int(nX)
+hasCUDA = os.path.exists('/usr/bin/nvidia-smi') ## Can use GPU acceleration
 
 from ROOT import *
 TMVA.Tools.Instance()
@@ -146,7 +147,6 @@ if mvaAlgo == "BDT":
 elif mvaAlgo == "DNN":
     # For the DNN
     dnnCommonOpt = "!H:V:ErrorStrategy=CROSSENTROPY:WeightInitialization=XAVIERUNIFORM:VarTransform=D,G,N"
-    hasCUDA = False#os.path.exists('/usr/bin/nvidia-smi') ## Can use GPU acceleration
     if hasCUDA:
         dnnCommonOpt += ":Architecture=GPU"
     else:
@@ -182,7 +182,6 @@ elif mvaAlgo == "DNN":
 elif mvaAlgo == "Keras":
     import google.protobuf
     import keras
-    hasCUDA = os.path.exists('/usr/bin/nvidia-smi') ## Can use GPU acceleration
     if hasCUDA:
         import tensorflow as tf
         config = tf.ConfigProto()
