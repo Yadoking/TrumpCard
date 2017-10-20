@@ -65,17 +65,21 @@ colors.extend([kRed-1, kBlue-1, kGreen-5, kOrange+3, kMagenta-1])
 
 hAUC = TH1D("hAUC", "AUC;;Area under curve", len(grps), 1, len(grps)+1)
 hAUCRefs = OrderedDict()
-hAUCRefs["BDT_GiniIndex_.*_nCuts20_.*"] = ["BDT", kAzure+1, hAUC.Clone()]
-#hAUCRefs["DNN_ReLU_.*"] = ["DNN (ReLU)", kRed+2, hAUC.Clone()]
+#hAUCRefs["BDT_GiniIndex_.*minNode2p5_nTree850"] = ["BDT >=2.5node 850tree", kAzure+1, hAUC.Clone()]
+#hAUCRefs["BDT_GiniIndex_.*nCuts80.*"] = ["BDT >=2.5node 850tree", kAzure+1, hAUC.Clone()]
+hAUCRefs["DNN_ReLU_.*"] = ["DNN (ReLU)", kRed+2, hAUC.Clone()]
 hAUCRefs["BaggedBDT_GiniIndex_nCuts20_maxDepth3_minNode2p5_nTree850"] = ["BDT default", kBlue+1, hAUC.Clone()]
 
 dnnNodes = [16,32,64,128,256,512]
 nX, nY = len(dnnNodes), 20
 hAUC2D_DNN   = TH2D("hAUC2D_DNN"  , "hAUC2D_DNN;Number of nodes;Number of Layers", nX, 0, nX, nY, 1, nY+1)
 hAUC2D_Keras = TH2D("hAUC2D_Keras", "hAUC2D_Keras;Number of nodes;Number of Layers", nX, 0, nX, nY, 1, nY+1)
+for i, x in enumerate(dnnNodes):
+    hAUC2D_DNN.GetXaxis().SetBinLabel(i+1, "%d" % x)
+    hAUC2D_Keras.GetXaxis().SetBinLabel(i+1, "%d" % x)
 
 for i, (name, [(fName, objPath), auc]) in enumerate(grps.iteritems()):
-    hAUC.SetBinContent(i+2, auc)
+    hAUC.SetBinContent(i+1, auc)
     for pattern, (title, color, h) in hAUCRefs.iteritems():
         if not re.match('^'+pattern+'$', name): continue
         h.SetBinContent(i+1, auc)
@@ -83,7 +87,7 @@ for i, (name, [(fName, objPath), auc]) in enumerate(grps.iteritems()):
         w, x, y = name.split('DNN_')[-1].split('_')
         x, y = int(x[1:]), int(y[1:])
         xbin = hAUC2D_DNN.GetXaxis().FindBin("%d" % x)
-        ybin = hAUC2D_DNN.GetXaxis().FindBin("%d" % y)
+        ybin = hAUC2D_DNN.GetYaxis().FindBin(y)
         if xbin < 1 or xbin > hAUC2D_DNN.GetNbinsX() or \
            ybin < 1 or ybin > hAUC2D_DNN.GetNbinsY(): continue
 
@@ -92,7 +96,7 @@ for i, (name, [(fName, objPath), auc]) in enumerate(grps.iteritems()):
         w, x, y = name.split('Keras_')[-1].split('_')
         x, y = int(x[1:]), int(y[1:])
         xbin = hAUC2D_Keras.GetXaxis().FindBin("%d" % x)
-        ybin = hAUC2D_Keras.GetXaxis().FindBin("%d" % y)
+        ybin = hAUC2D_Keras.GetYaxis().FindBin(y)
         if xbin < 1 or xbin > hAUC2D_Keras.GetNbinsX() or \
            ybin < 1 or ybin > hAUC2D_Keras.GetNbinsY(): continue
 
