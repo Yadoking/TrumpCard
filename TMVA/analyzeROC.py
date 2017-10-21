@@ -132,8 +132,8 @@ cROC.SetGridx()
 cROC.SetGridy()
 
 cAUC = TCanvas("cAUC", "cAUC", 500, 500)
-hAUC.SetMinimum(0.60)
-hAUC.SetMaximum(0.76)
+#hAUC.SetMinimum(hAUC.GetMinimum()*0.9)
+#hAUC.SetMaximum(hAUC.GetMaximum()*1.1)
 hAUC.Draw()
 legAUC = buildLegend()
 for name, (title, color, h) in hAUCRefs.iteritems():
@@ -159,3 +159,5 @@ hAUC2D_Keras.SetMinimum(0.60)
 hAUC2D_Keras.SetMaximum(0.75)
 hAUC2D_Keras.Draw("COLZTEXT")
 
+for x in grps.keys()[:5]:
+    print grps[x][0][0], grps[x][1]
