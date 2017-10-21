@@ -160,4 +160,4 @@ hAUC2D_Keras.SetMaximum(0.75)
 hAUC2D_Keras.Draw("COLZTEXT")
 
 for x in grps.keys()[:5]:
-    print grps[x][0][0], grps[x][1]
+    print grps[x][0][0], grps[x][0][1].split('/')[-2], grps[x][1]
