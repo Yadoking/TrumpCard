@@ -18,13 +18,14 @@ hasCUDA = os.path.exists('/usr/bin/nvidia-smi') ## Can use GPU acceleration
 
 from ROOT import *
 TMVA.Tools.Instance()
-TMVA.PyMethodBase.PyInitialize()
+if 'mvaAlgo' in ('DNN', 'Keras'):
+    TMVA.PyMethodBase.PyInitialize()
 
 fout = TFile("mva_%s.root" % (mvaType0), "recreate")
 
 factory = TMVA.Factory("TMVAClassification", fout,
                        #"!V:!Silent:Color:DrawProgressBar:Transformations=I;D;P;G:AnalysisType=Classification" )
-                       "!V:!Silent:Transformations=I;D;P;G:AnalysisType=Classification" )
+                       "!V:!Silent:!Color:!DrawProgressBar:Transformations=I;D;P;G:AnalysisType=Classification" )
 
 loader = TMVA.DataLoader("mva")
 intVars = [
@@ -126,18 +127,18 @@ if mvaAlgo == "BDT":
     bdtOption = "!H:!V:BoostType=AdaBoost:AdaBoostBeta=0.5:SeparationType=GiniIndex"
     bdtgOption = "!H:!V:BoostType=Grad:UseBaggedBoost:SeparationType=GiniIndex"
     for nCuts in [10, 20, 30, 40, 50, 60, 80]:
-        for maxDepth in [2,3]:#,4,5]:
-            for minNodeSize in [2.5, 2,3]:#,5,10,20]:
-                for nTree in [850, 500, 1000, 1500]:#, 2000, 100, 200]:
+        for maxDepth in [2,3,4,5]:
+            for minNodeSize in [2.5, 2,3,5,10,20]:
+                for nTree in [850, 500, 1000, 1500, 2000, 100, 200]:
                     opt = [bdtOption, "NTrees=%d" % nTree,
                            "nCuts=%d" % nCuts, "MaxDepth=%d" % maxDepth, "MinNodeSize=%g%%" % minNodeSize]
                     suffix = "nCuts%d_maxDepth%d_minNode%g_nTree%d" % (nCuts, maxDepth, minNodeSize, nTree)
                     suffix = suffix.replace('.','p')
-                    #methods.append([TMVA.Types.kBDT, "BDT_%s" % suffix, ":".join(opt)])
-                    #methods.append([TMVA.Types.kBDT, "BaggedBDT_%s" % suffix, ":".join(opt)+":UseBaggedBoost:BaggedSampleFraction=0.5"])
+                    methods.append([TMVA.Types.kBDT, "BDT_%s" % suffix, ":".join(opt)])
+                    methods.append([TMVA.Types.kBDT, "BaggedBDT_%s" % suffix, ":".join(opt)+":UseBaggedBoost:BaggedSampleFraction=0.5"])
 
-                    for shrink in [0.1]:#, 0.2, 0.3, 0.5]:
-                        for bagFrac in [0.1]:#, 0.2, 0.3, 0.5, 0.7]:
+                    for shrink in [0.1, 0.2, 0.3, 0.5]:
+                        for bagFrac in [0.1, 0.2, 0.3, 0.5, 0.7]:
                             optg = [bdtgOption] + opt[1:] + ["Shrinkage=%g" % shrink, "BaggedSampleFraction=%g" %bagFrac]
                             suffix = "nCuts%d_maxDepth%d_minNode%g_nTree%d_shrink%g_bag%g" % (nCuts, maxDepth, minNodeSize, nTree, shrink, bagFrac)
                             suffix = suffix.replace('.','p')
