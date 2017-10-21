@@ -106,7 +106,6 @@ bkgCut = TCut("missingET > 0 && cjetPt > 0 && jet1csv > 0 &&  jet2csv > 0 &&  je
 loader.PrepareTrainingAndTestTree(
     sigCut, bkgCut,
     #"nTrain_Signal=1000:nTrain_Background=1000:SplitMode=Random:NormMode=NumEvents:!V"
-    #"nTrain_Signal=30000:nTrain_Background=100000:SplitMode=Random:NormMode=NumEvents:!V"
     "nTrain_Signal=30000:nTrain_Background=440000:SplitMode=Random:NormMode=NumEvents:!V"
 )
 
@@ -191,11 +190,16 @@ elif mvaAlgo == "DNN":
 elif mvaAlgo == "Keras":
     import google.protobuf
     import keras
+    import tensorflow as tf
     if hasCUDA:
-        import tensorflow as tf
         config = tf.ConfigProto()
-        config.gpu_options.visible_device_list = "0"
-        keras.backend.tensorflow_backend.set_session(tf.Session(config=config))
+        config.gpu_options.visible_device_list = "0,1"
+    else:
+        os.environ["CUDA_VISIBLE_DEVICES"] = ""
+        config = tf.ConfigProto(
+            device_count = {"GPU":0}
+        )
+    keras.backend.tensorflow_backend.set_session(tf.Session(config=config))
 
     if 'ReLU' == ftnName: activation = 'relu'
     else: activation = 'tanh'
@@ -206,16 +210,18 @@ elif mvaAlgo == "Keras":
 
     for nY in range(20,0,-1):
         model = keras.models.Sequential()
-        model.add(keras.layers.core.Dense(nX, init=init, activation=activation, kernel_regularizer=keras.regularizers.l2(1e-3), input_dim=nVars))
+        model.add(keras.layers.core.Dense(nX, activation=activation, input_dim=nVars,
+                                          kernel_regularizer=keras.regularizers.l2(1e-2),
+                                          kernel_initializer=init, bias_initializer='zeros'))
         model.add(keras.layers.normalization.BatchNormalization())
 
         for i in range(nY):
             model.add(keras.layers.core.Dropout(0.5))
             model.add(keras.layers.core.Dense(nX, init=init, activation=activation)) 
             model.add(keras.layers.normalization.BatchNormalization())
-        model.add(keras.layers.core.Dropout(0.5))
-        model.add(keras.layers.core.Dense(nX, init=init, activation=activation))
-        model.add(keras.layers.normalization.BatchNormalization())
+        #model.add(keras.layers.core.Dropout(0.5))
+        #model.add(keras.layers.core.Dense(nX, init=init, activation=activation))
+        #model.add(keras.layers.normalization.BatchNormalization())
         model.add(keras.layers.core.Dense(2, activation='softmax'))
 
         #optimizer = keras.optimizers.SGD(lr=1e-3, decay=1e-9, momentum=0.5, nesterov=True)
@@ -226,8 +232,8 @@ elif mvaAlgo == "Keras":
         model.save(modelFile)
         #model.summary()
 
-        #factory.BookMethod(loader, TMVA.Types.kPyKeras, 'Keras_%s_X%d_Y%d' % (ftnName, nX, nY), "!H:V:FilenameModel=%s:NumEpochs=30:BatchSize=128:VarTransform=D,G,N" % modelFile)
-        factory.BookMethod(loader, TMVA.Types.kPyKeras, 'Keras_%s_X%d_Y%d' % (ftnName, nX, nY), "!H:V:FilenameModel=%s:NumEpochs=30:BatchSize=1000:VarTransform=D,G" % modelFile)
+        factory.BookMethod(loader, TMVA.Types.kPyKeras, 'Keras_%s_X%d_Y%d' % (ftnName, nX, nY),
+                           "!H:V:FilenameModel=%s:NumEpochs=30:BatchSize=1000:VarTransform=D,G,N" % modelFile)
 
 factory.TrainAllMethods()
 factory.TestAllMethods()
