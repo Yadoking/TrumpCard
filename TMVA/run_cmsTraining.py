@@ -209,23 +209,26 @@ elif mvaAlgo == "Keras":
     #init='random_normal'
 
     for nY in range(20,0,-1):
+    #for nY in [5]:
         model = keras.models.Sequential()
-        model.add(keras.layers.core.Dense(nX, activation=activation, input_dim=nVars,
-                                          kernel_regularizer=keras.regularizers.l2(1e-2),
-                                          kernel_initializer=init, bias_initializer='zeros'))
-        model.add(keras.layers.normalization.BatchNormalization())
+        #model.add(keras.layers.core.Dense(nX, activation=activation, input_dim=nVars,
+        #                                  kernel_regularizer=keras.regularizers.l2(1e-2),
+        #                                  kernel_initializer=init, bias_initializer='zeros'))
+        model.add(keras.layers.core.Dense(nX, input_dim=nVars,
+                                          kernel_regularizer=keras.regularizers.l2(1e-2)))
 
         for i in range(nY):
-            model.add(keras.layers.core.Dropout(0.5))
-            model.add(keras.layers.core.Dense(nX, init=init, activation=activation)) 
             model.add(keras.layers.normalization.BatchNormalization())
+            model.add(keras.layers.core.Dense(nX, activation=activation,
+                                              kernel_initializer=init, bias_initializer='zeros'))
+            model.add(keras.layers.core.Dropout(0.5))
         #model.add(keras.layers.core.Dropout(0.5))
         #model.add(keras.layers.core.Dense(nX, init=init, activation=activation))
         #model.add(keras.layers.normalization.BatchNormalization())
         model.add(keras.layers.core.Dense(2, activation='softmax'))
 
         #optimizer = keras.optimizers.SGD(lr=1e-3, decay=1e-9, momentum=0.5, nesterov=True)
-        optimizer = keras.optimizers.Adam(lr=1e-3, decay=1e-3, beta_1=0.9, beta_2=0.999)
+        optimizer = keras.optimizers.Adam(lr=1e-3, decay=1e-3, beta_1=0.9, beta_2=0.999, epsilon=1e-8)
         model.compile(loss='binary_crossentropy', optimizer=optimizer, metrics=['binary_accuracy'])
         #model.compile(loss='categorical_crossentropy', optimizer=optimizer, metrics=['accuracy'])
         modelFile = 'model_%s_X%d_Y%d.h5' % (ftnName, nX, nY)
