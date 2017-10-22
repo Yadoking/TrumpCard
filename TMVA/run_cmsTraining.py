@@ -12,8 +12,8 @@ mvaAlgo = mvaType0.split('_',1)[0]
 if mvaAlgo == 'BDT':
     bdtParIndex = mvaType0.split('_')[1]
 elif mvaAlgo in ('DNN', 'Keras'):
-    ftnName, nX = mvaType0.split('_')[1:]
-    nX = int(nX)
+    ftnName, nX, nY = mvaType0.split('_')[1:]
+    nX, nY = int(nX), int(nY)
 hasCUDA = os.path.exists('/usr/bin/nvidia-smi') ## Can use GPU acceleration
 
 from ROOT import *
@@ -125,11 +125,12 @@ if mvaAlgo == "BDT":
     ]
 
     bdtOption = "!H:!V:BoostType=AdaBoost:AdaBoostBeta=0.5:SeparationType=GiniIndex"
+    #bdtOption = "!H:!V:BoostType=AdaBoost:AdaBoostBeta=0.5:SeparationType=GiniIndex:VarTransform=D"
     bdtgOption = "!H:!V:BoostType=Grad:UseBaggedBoost:SeparationType=GiniIndex"
-    for nCuts in [20, 30, 40, 50, 60, 80]:
+    for nCuts in reversed([20, 30, 40, 50, 60, 80]):
         for maxDepth in [2,3,4]:
-            for minNodeSize in [2.5, 2,3,5]:
-                for nTree in [850, 500, 1000, 1500, 2000]:
+            for minNodeSize in [2,2.5,3,5,7]:
+                for nTree in reversed([500, 850, 1000, 1500, 2000]):
                     opt = [bdtOption, "NTrees=%d" % nTree,
                            "nCuts=%d" % nCuts, "MaxDepth=%d" % maxDepth, "MinNodeSize=%g%%" % minNodeSize]
                     suffix = "nCuts%d_maxDepth%d_minNode%g_nTree%d" % (nCuts, maxDepth, minNodeSize, nTree)
@@ -142,7 +143,7 @@ if mvaAlgo == "BDT":
                             optg = [bdtgOption] + opt[1:] + ["Shrinkage=%g" % shrink, "BaggedSampleFraction=%g" %bagFrac]
                             suffix = "nCuts%d_maxDepth%d_minNode%g_nTree%d_shrink%g_bag%g" % (nCuts, maxDepth, minNodeSize, nTree, shrink, bagFrac)
                             suffix = suffix.replace('.','p')
-                            methods.append([TMVA.Types.kBDT, "BDTG_%s" % suffix, ":".join(opt)])
+                            methods.append([TMVA.Types.kBDT, "BDTG_%s" % suffix, ":".join(optg)])
     if bdtParIndex.isdigit():
         bdtIndex = int(bdtParIndex)
         factory.BookMethod(loader, *methods[bdtIndex])
@@ -155,7 +156,7 @@ if mvaAlgo == "BDT":
 
 elif mvaAlgo == "DNN":
     # For the DNN
-    dnnCommonOpt = "!H:V:ErrorStrategy=CROSSENTROPY:WeightInitialization=XAVIERUNIFORM:VarTransform=D,G,N"
+    dnnCommonOpt = "!H:V:ErrorStrategy=CROSSENTROPY:WeightInitialization=XAVIER:VarTransform=D,G,N"
     if hasCUDA:
         dnnCommonOpt += ":Architecture=GPU"
     else:
@@ -164,27 +165,27 @@ elif mvaAlgo == "DNN":
                          "WeightDecay=1e-4", "BatchSize=128", "TestRepetitions=10",]
 
     dnnLayouts = OrderedDict()
-    for nY in range(20,0,-1):
-        layers = []
-        momConfig = "Momentum=0.9"
-        rateConfig = "LearningRate=1e-1"
-        dropConfig = "DropConfig=0.0+0.5+0.5+0.5"
+    layers = []
+    momConfig = "Momentum=0.9"
+    rateConfig = "LearningRate=1e-1"
+    dropConfig = "DropConfig=0.0+0.5+0.5+0.5"
 
-        for i in range(nY):
-            if i == nY-1:
-                momConfig = "Momentum=0.9"
-                rateConfig = "LearningRate=1e-3"
-                dropConfig = "DropConfig=0.0+0.0+0.0+0.0"
-            elif i == nY-2:
-                rateConfig = "LearningRate=1e-2"
+    for i in range(nY):
+        if i == nY-1:
+            momConfig = "Momentum=0.9"
+            rateConfig = "LearningRate=1e-3"
+            dropConfig = "DropConfig=0.0+0.0+0.0+0.0"
+        elif i == nY-2:
+            rateConfig = "LearningRate=1e-2"
 
-            layers.append(["%s|%d" % (ftnName, nX), trainingCommonOpt+[rateConfig, momConfig, dropConfig]])
-        dnnLayouts["DNN_%s_X%d_Y%d" % (ftnName, nX, nY)] = layers
+        layers.append(["%s|%d" % (ftnName, nX), trainingCommonOpt+[rateConfig, momConfig, dropConfig]])
+    dnnLayouts["DNN_%s_X%d_Y%d" % (ftnName, nX, nY)] = layers
 
     for name, dnnLayout in dnnLayouts.iteritems():
         nNode = int(dnnLayout[-1][0].split('|')[-1])
         dnnOpts = [dnnCommonOpt,
-            ("Layout="+("|".join([x[0] for x in dnnLayout]))+("|%d,LINEAR" % nNode)),
+            #("Layout="+("|".join([x[0] for x in dnnLayout]))+("|%d,LINEAR" % nNode)),
+            ("Layout="+("|".join([x[0] for x in dnnLayout]))+("|%d,TANH" % nNode)),
             ("TrainingStrategy="+("|".join([",".join(x[1]) for x in dnnLayout]))),
         ]
         factory.BookMethod(loader, TMVA.Types.kDNN, name, ":".join(dnnOpts))
@@ -205,43 +206,42 @@ elif mvaAlgo == "Keras":
     if 'ReLU' == ftnName: activation = 'relu'
     else: activation = 'tanh'
 
-    init='glorot_uniform'
-    #init='glorot_normal'
+    #init='glorot_uniform'
+    init='glorot_normal'
     #init='random_normal'
 
-    for nY in range(20,0,-1):
-    #for nY in [5]:
-        model = keras.models.Sequential()
-        #model.add(keras.layers.core.Dense(nX, activation=activation, input_dim=nVars,
-        #                                  kernel_regularizer=keras.regularizers.l2(1e-2),
-        #                                  kernel_initializer=init, bias_initializer='zeros'))
-        model.add(keras.layers.core.Dense(nX, input_dim=nVars,
-                                          kernel_regularizer=keras.regularizers.l2(1e-2)))
+    model = keras.models.Sequential()
+    #model.add(keras.layers.core.Dense(nX, activation=activation, input_dim=nVars,
+    #                                  kernel_regularizer=keras.regularizers.l2(1e-2),
+    #                                  kernel_initializer=init, bias_initializer='zeros'))
+    model.add(keras.layers.core.Dense(nX, input_dim=nVars,
+                                      kernel_regularizer=keras.regularizers.l2(1e-2)))
 
-        for i in range(nY):
-            model.add(keras.layers.normalization.BatchNormalization())
-            model.add(keras.layers.core.Dense(nX, activation=activation,
-                                              kernel_initializer=init, bias_initializer='zeros'))
-            model.add(keras.layers.core.Dropout(0.5))
-        #model.add(keras.layers.core.Dropout(0.5))
-        #model.add(keras.layers.core.Dense(nX, init=init, activation=activation))
-        #model.add(keras.layers.normalization.BatchNormalization())
-        model.add(keras.layers.core.Dense(2, activation='softmax'))
+    for i in range(nY):
+        model.add(keras.layers.normalization.BatchNormalization())
+        model.add(keras.layers.core.Dense(nX, activation=activation,
+                                          kernel_initializer=init, bias_initializer='zeros'))
+        model.add(keras.layers.core.Dropout(0.5))
+    #model.add(keras.layers.core.Dropout(0.5))
+    #model.add(keras.layers.core.Dense(nX, init=init, activation=activation))
+    #model.add(keras.layers.normalization.BatchNormalization())
+    model.add(keras.layers.core.Dense(2, activation='softmax'))
 
-        #optimizer = keras.optimizers.SGD(lr=1e-3, decay=1e-9, momentum=0.5, nesterov=True)
-        optimizer = keras.optimizers.Adam(lr=1e-3, decay=1e-3, beta_1=0.9, beta_2=0.999, epsilon=1e-8)
-        model.compile(loss='binary_crossentropy', optimizer=optimizer, metrics=['binary_accuracy'])
-        #model.compile(loss='categorical_crossentropy', optimizer=optimizer, metrics=['accuracy'])
-        modelFile = 'model_%s_X%d_Y%d.h5' % (ftnName, nX, nY)
-        model.save(modelFile)
-        #model.summary()
+    #optimizer = keras.optimizers.SGD(lr=1e-3, decay=1e-9, momentum=0.5, nesterov=True)
+    optimizer = keras.optimizers.Adam(lr=1e-3, decay=1e-3, beta_1=0.9, beta_2=0.999, epsilon=1e-8)
+    model.compile(loss='binary_crossentropy', optimizer=optimizer, metrics=['binary_accuracy'])
+    #model.compile(loss='categorical_crossentropy', optimizer=optimizer, metrics=['accuracy'])
+    modelFile = 'model_%s_X%d_Y%d.h5' % (ftnName, nX, nY)
+    model.save(modelFile)
+    #model.summary()
 
-        factory.BookMethod(loader, TMVA.Types.kPyKeras, 'Keras_%s_X%d_Y%d' % (ftnName, nX, nY),
-                           "!H:V:FilenameModel=%s:NumEpochs=30:BatchSize=1000:VarTransform=D,G,N" % modelFile)
+    factory.BookMethod(loader, TMVA.Types.kPyKeras, 'Keras_%s_X%d_Y%d' % (ftnName, nX, nY),
+                       "!H:V:FilenameModel=%s:NumEpochs=30:BatchSize=1000:VarTransform=D,G,N" % modelFile)
 
 factory.TrainAllMethods()
 factory.TestAllMethods()
 factory.EvaluateAllMethods()
+
 fout.Close()
 
 
