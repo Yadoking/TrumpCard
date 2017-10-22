@@ -63,12 +63,22 @@ grps = OrderedDict(reversed(sorted(grps.iteritems(), key=lambda x: x[1][1])))
 colors = [kRed, kBlue+1, kGreen+3, kOrange-3, kMagenta+2]
 colors.extend([kRed-1, kBlue-1, kGreen-5, kOrange+3, kMagenta-1])
 
-hAUC = TH1D("hAUC", "AUC;;Area under curve", len(grps), 1, len(grps)+1)
-hAUCRefs = OrderedDict()
-#hAUCRefs["BDT_GiniIndex_.*minNode2p5_nTree850"] = ["BDT >=2.5node 850tree", kAzure+1, hAUC.Clone()]
-#hAUCRefs["BDT_GiniIndex_.*nCuts80.*"] = ["BDT >=2.5node 850tree", kAzure+1, hAUC.Clone()]
-hAUCRefs["DNN_ReLU_.*"] = ["DNN (ReLU)", kRed+2, hAUC.Clone()]
-hAUCRefs["BaggedBDT_GiniIndex_nCuts20_maxDepth3_minNode2p5_nTree850"] = ["BDT default", kBlue+1, hAUC.Clone()]
+hAUC = TH1D("hAUC", "AUC;;Area under curve", len(grps), 0, len(grps)) ## Just for frame
+grpAUC = TGraph()
+grpAUCRefs = OrderedDict()
+#grpAUCRefs["BDT_.*minNode2p5_nTree850"] = ["BDT >=2.5node 850tree", kAzure+1, grpAUC.Clone()]
+#grpAUCRefs["DNN_ReLU_.*"] = ["DNN (ReLU)", kRed+2, TGraph()]
+grpAUCRefs["BDTG_.*"] = ["Gradient BDT", kMagenta+1, TGraph()]
+grpAUCRefs["BDT_nCuts20_maxDepth3_minNode2p5_nTree850"] = ["BDT default", kBlue+1, TGraph()]
+#grpAUCRefs["BDTD_.*"] = ["Decorrelated BDT", kCyan+1, grpAUC.Clone()]
+for title, color, grp in grpAUCRefs.values():
+    grp.SetMarkerStyle(kFullCircle)
+    grp.SetMarkerSize(0.5)
+    grp.SetMarkerColor(color)
+    grp.SetLineColor(color)
+grpAUCRefs["BDT_nCuts20_maxDepth3_minNode2p5_nTree850"][-1].SetMarkerSize(2)
+grpAUCRefs["BDT_nCuts20_maxDepth3_minNode2p5_nTree850"][-1].SetLineWidth(2)
+grpAUCRefs["BDT_nCuts20_maxDepth3_minNode2p5_nTree850"][-1].SetMarkerStyle(kOpenStar)
 
 dnnNodes = [16,32,64,128,256,512]
 nX, nY = len(dnnNodes), 20
@@ -79,10 +89,10 @@ for i, x in enumerate(dnnNodes):
     hAUC2D_Keras.GetXaxis().SetBinLabel(i+1, "%d" % x)
 
 for i, (name, [(fName, objPath), auc]) in enumerate(grps.iteritems()):
-    hAUC.SetBinContent(i+1, auc)
-    for pattern, (title, color, h) in hAUCRefs.iteritems():
+    grpAUC.SetPoint(i, i, auc)
+    for pattern, (title, color, grp) in grpAUCRefs.iteritems():
         if not re.match('^'+pattern+'$', name): continue
-        h.SetBinContent(i+1, auc)
+        grp.SetPoint(i, i, auc)
     if 'DNN_' in name and '_X' in name:
         w, x, y = name.split('DNN_')[-1].split('_')
         x, y = int(x[1:]), int(y[1:])
@@ -132,15 +142,19 @@ cROC.SetGridx()
 cROC.SetGridy()
 
 cAUC = TCanvas("cAUC", "cAUC", 500, 500)
-#hAUC.SetMinimum(hAUC.GetMinimum()*0.9)
-#hAUC.SetMaximum(hAUC.GetMaximum()*1.1)
+hAUC.SetMinimum(0.70)
+hAUC.SetMaximum(0.76)
 hAUC.Draw()
-legAUC = buildLegend()
-for name, (title, color, h) in hAUCRefs.iteritems():
-    legAUC.AddEntry(h, "%s" % title, "f")
-    h.SetFillColor(color)
-    h.SetLineColor(color)
-    h.Draw("same")
+legAUC = buildLegend(0.2, 0.2, 0.6, 0.4)
+grpAUC.SetMarkerStyle(kFullCircle)
+grpAUC.SetMarkerSize(0.5)
+grpAUC.Draw("p")
+grpAUC.SetEditable(False)
+legAUC.AddEntry(grpAUC, "All MVA methods", "p")
+for name, (title, color, grp) in grpAUCRefs.iteritems():
+    legAUC.AddEntry(grp, "%s" % title, "p")
+    grp.Draw("p")
+    grp.SetEditable(False)
 legAUC.Draw()
 
 cAUC2D_DNN = TCanvas("cAUC2D_DNN", "cAUC2D_DNN", 500, 500)
