@@ -156,39 +156,30 @@ if mvaAlgo == "BDT":
 
 elif mvaAlgo == "DNN":
     # For the DNN
-    dnnCommonOpt = "!H:V:ErrorStrategy=CROSSENTROPY:WeightInitialization=XAVIER:VarTransform=D,G,N"
+    name = "DNN_%s_X%d_Y%d" % (ftnName, nX, nY)
+
+    dnnOpts = ["!H:V:ErrorStrategy=CROSSENTROPY:WeightInitialization=XAVIER:VarTransform=D,G,N"]
     if hasCUDA:
-        dnnCommonOpt += ":Architecture=GPU"
+        dnnOpts.append("Architecture=GPU")
     else:
-        dnnCommonOpt += ":Architecture=CPU"
-    trainingCommonOpt = ["Repetitions=1", "ConvergenceSteps=20", "Multithreading=True", "Regularization=L2",
-                         "WeightDecay=1e-4", "BatchSize=128", "TestRepetitions=10",]
+        dnnOpts.append("Architecture=CPU")
 
-    dnnLayouts = OrderedDict()
-    layers = []
-    momConfig = "Momentum=0.9"
-    rateConfig = "LearningRate=1e-1"
-    dropConfig = "DropConfig=0.0+0.5+0.5+0.5"
+    ## Configure layout
+    layers = "Layout="+(",".join(["%s|%d" % (ftnName, nX) for i in range(nY)]))+(",LINEAR|%d" % nX)
+    dnnOpts.append(layers)
 
-    for i in range(nY):
-        if i == nY-1:
-            momConfig = "Momentum=0.9"
-            rateConfig = "LearningRate=1e-3"
-            dropConfig = "DropConfig=0.0+0.0+0.0+0.0"
-        elif i == nY-2:
-            rateConfig = "LearningRate=1e-2"
+    ## Configure learning strategy in steps
+    trainStrategy0 = ["Repetitions=1","ConvergenceSteps=20","Regularization=L2","BatchSize=1000","TestRepetitions=5","Multithreading=True"]
+    dropConfig = ["DropConfig=" + ("+".join(["0.0"]+["0.5" for i in range(nY-2)]))]
+    trainSteps = [
+        ["LearningRate=1e-1","WeightDecay=1e-3","Momentum=0.9"],
+        ["LearningRate=1e-2","WeightDecay=1e-3","Momentum=0.9"],
+        ["LearningRate=1e-3","WeightDecay=1e-4","Momentum=0.8"],
+    ]
+    dnnOpts.append("TrainingStrategy=%s" % ("|".join([",".join(trainStrategy0+strategy+dropConfig) for strategy in trainSteps])))
+ 
+    factory.BookMethod(loader, TMVA.Types.kDNN, name, ":".join(dnnOpts))
 
-        layers.append(["%s|%d" % (ftnName, nX), trainingCommonOpt+[rateConfig, momConfig, dropConfig]])
-    dnnLayouts["DNN_%s_X%d_Y%d" % (ftnName, nX, nY)] = layers
-
-    for name, dnnLayout in dnnLayouts.iteritems():
-        nNode = int(dnnLayout[-1][0].split('|')[-1])
-        dnnOpts = [dnnCommonOpt,
-            #("Layout="+("|".join([x[0] for x in dnnLayout]))+("|%d,LINEAR" % nNode)),
-            ("Layout="+("|".join([x[0] for x in dnnLayout]))+("|%d,TANH" % nNode)),
-            ("TrainingStrategy="+("|".join([",".join(x[1]) for x in dnnLayout]))),
-        ]
-        factory.BookMethod(loader, TMVA.Types.kDNN, name, ":".join(dnnOpts))
 elif mvaAlgo == "Keras":
     import google.protobuf
     import keras
