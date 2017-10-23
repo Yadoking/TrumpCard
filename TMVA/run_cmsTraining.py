@@ -18,7 +18,7 @@ hasCUDA = os.path.exists('/usr/bin/nvidia-smi') ## Can use GPU acceleration
 
 from ROOT import *
 TMVA.Tools.Instance()
-if 'mvaAlgo' in ('DNN', 'Keras'):
+if mvaAlgo in ('DNN', 'Keras'):
     TMVA.PyMethodBase.PyInitialize()
 
 fout = TFile("mva_%s.root" % (mvaType0), "recreate")
@@ -165,12 +165,12 @@ elif mvaAlgo == "DNN":
         dnnOpts.append("Architecture=CPU")
 
     ## Configure layout
-    layers = "Layout="+(",".join(["%s|%d" % (ftnName, nX) for i in range(nY)]))+(",LINEAR|%d" % nX)
+    layers = "Layout="+(",".join(["%s|%d" % (ftnName, nX) for i in range(nY)]))+",LINEAR"
     dnnOpts.append(layers)
 
     ## Configure learning strategy in steps
     trainStrategy0 = ["Repetitions=1","ConvergenceSteps=20","Regularization=L2","BatchSize=1000","TestRepetitions=5","Multithreading=True"]
-    dropConfig = ["DropConfig=" + ("+".join(["0.0"]+["0.5" for i in range(nY-2)]))]
+    dropConfig = ["DropConfig=" + ("+".join(["0.0"]+["0.5" for i in range(nY-2)]+["0.0"]))]
     trainSteps = [
         ["LearningRate=1e-1","WeightDecay=1e-3","Momentum=0.9"],
         ["LearningRate=1e-2","WeightDecay=1e-3","Momentum=0.9"],
@@ -186,7 +186,7 @@ elif mvaAlgo == "Keras":
     import tensorflow as tf
     if hasCUDA:
         config = tf.ConfigProto()
-        config.gpu_options.visible_device_list = "0,1"
+        config.gpu_options.visible_device_list = "1"
     else:
         os.environ["CUDA_VISIBLE_DEVICES"] = ""
         config = tf.ConfigProto(
@@ -212,22 +212,21 @@ elif mvaAlgo == "Keras":
         model.add(keras.layers.normalization.BatchNormalization())
         model.add(keras.layers.core.Dense(nX, activation=activation,
                                           kernel_initializer=init, bias_initializer='zeros'))
-        model.add(keras.layers.core.Dropout(0.5))
-    #model.add(keras.layers.core.Dropout(0.5))
-    #model.add(keras.layers.core.Dense(nX, init=init, activation=activation))
-    #model.add(keras.layers.normalization.BatchNormalization())
+        if i != nY-1: model.add(keras.layers.core.Dropout(0.5))
+    model.add(keras.layers.normalization.BatchNormalization())
     model.add(keras.layers.core.Dense(2, activation='softmax'))
 
     #optimizer = keras.optimizers.SGD(lr=1e-3, decay=1e-9, momentum=0.5, nesterov=True)
     optimizer = keras.optimizers.Adam(lr=1e-3, decay=1e-3, beta_1=0.9, beta_2=0.999, epsilon=1e-8)
     model.compile(loss='binary_crossentropy', optimizer=optimizer, metrics=['binary_accuracy'])
     #model.compile(loss='categorical_crossentropy', optimizer=optimizer, metrics=['accuracy'])
-    modelFile = 'model_%s_X%d_Y%d.h5' % (ftnName, nX, nY)
+    if not os.path.exists("model"): os.mkdir("model")
+    modelFile = 'model/model_%s_X%d_Y%d.h5' % (ftnName, nX, nY)
     model.save(modelFile)
     #model.summary()
 
     factory.BookMethod(loader, TMVA.Types.kPyKeras, 'Keras_%s_X%d_Y%d' % (ftnName, nX, nY),
-                       "!H:V:FilenameModel=%s:NumEpochs=30:BatchSize=1000:VarTransform=D,G,N" % modelFile)
+                       "!H:V:FilenameModel=%s:NumEpochs=50:BatchSize=1000:VarTransform=D,G,N" % modelFile)
 
 factory.TrainAllMethods()
 factory.TestAllMethods()
