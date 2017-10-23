@@ -56,7 +56,16 @@ for fName in sys.argv[1:]:
             objPath = d.GetPath().split(':',1)[-1]+'/'+hROC.GetName()
             auc = hROC.Integral()/hROC.GetNbinsX()
 
-            grps[methodName] = [(fName, objPath), auc]
+            hMVA_TestS = d.Get("MVA_%s_S" % methodName)
+            hMVA_TestB = d.Get("MVA_%s_B" % methodName)
+            hMVA_TrainS = d.Get("MVA_%s_Train_S" % methodName)
+            hMVA_TrainB = d.Get("MVA_%s_Train_B" % methodName)
+
+            chi2S = hMVA_TestS.Chi2Test(hMVA_TrainS, "WW CHI2/NDF")
+            chi2B = hMVA_TestB.Chi2Test(hMVA_TrainB, "WW CHI2/NDF")
+
+            grps[methodName] = [(fName, objPath), auc, chi2S, chi2B]
+
 grps = OrderedDict(reversed(sorted(grps.iteritems(), key=lambda x: x[1][1])))
 
 ## Fill histograms
@@ -68,17 +77,52 @@ grpAUC = TGraph()
 grpAUCRefs = OrderedDict()
 #grpAUCRefs["BDT_.*minNode2p5_nTree850"] = ["BDT >=2.5node 850tree", kAzure+1, grpAUC.Clone()]
 #grpAUCRefs["DNN_ReLU_.*"] = ["DNN (ReLU)", kRed+2, TGraph()]
-grpAUCRefs["BDTG_.*"] = ["Gradient BDT", kMagenta+1, TGraph()]
-grpAUCRefs["BDT_nCuts20_maxDepth3_minNode2p5_nTree850"] = ["BDT default", kBlue+1, TGraph()]
+#grpAUCRefs["BDTG_.*"] = ["Gradient BDT", kMagenta+1, TGraph()]
+grpAUCRefs["BDT_nCuts40_maxDepth3_minNode2p5_nTree850"] = ["BDT default", kBlue+1, TGraph()]
+grpAUCRefs["Keras+TF"] = ["Keras", kGreen+2, TGraph()]
 #grpAUCRefs["BDTD_.*"] = ["Decorrelated BDT", kCyan+1, grpAUC.Clone()]
-for title, color, grp in grpAUCRefs.values():
+for name, (title, color, grp) in grpAUCRefs.iteritems():
     grp.SetMarkerStyle(kFullCircle)
     grp.SetMarkerSize(0.5)
     grp.SetMarkerColor(color)
     grp.SetLineColor(color)
-grpAUCRefs["BDT_nCuts20_maxDepth3_minNode2p5_nTree850"][-1].SetMarkerSize(2)
-grpAUCRefs["BDT_nCuts20_maxDepth3_minNode2p5_nTree850"][-1].SetLineWidth(2)
-grpAUCRefs["BDT_nCuts20_maxDepth3_minNode2p5_nTree850"][-1].SetMarkerStyle(kOpenStar)
+
+grpAUCRefs["BDT_nCuts40_maxDepth3_minNode2p5_nTree850"][-1].SetMarkerSize(2)
+grpAUCRefs["BDT_nCuts40_maxDepth3_minNode2p5_nTree850"][-1].SetMarkerStyle(kFullTriangleUp)
+grpAUCRefs["Keras+TF"][-1].SetMarkerSize(2.5)
+grpAUCRefs["Keras+TF"][-1].SetMarkerStyle(kFullStar)
+
+grpChi2S, grpChi2B = TGraph(), TGraph()
+grpChi2S.SetMarkerStyle(kFullTriangleUp)
+grpChi2B.SetMarkerStyle(kFullTriangleUp)
+grpChi2S.SetTitle("BDT sig.")
+grpChi2B.SetTitle("BDT bkg.")
+grpChi2S.SetMarkerColor(kAzure+1)
+grpChi2B.SetMarkerColor(kGray+1)
+grpChi2S.SetFillColor(kAzure+1)
+grpChi2B.SetFillColor(kGray+1)
+grpChi2S.SetMarkerSize(0.7)
+grpChi2B.SetMarkerSize(0.7)
+
+grpChi2RefS, grpChi2RefB = TGraph(), TGraph()
+grpChi2RefS.SetMarkerStyle(kFullStar)
+grpChi2RefB.SetMarkerStyle(kFullStar)
+grpChi2RefS.SetTitle("Keras+TF sig.")
+grpChi2RefB.SetTitle("Keras+TF bkg.")
+grpChi2RefS.SetMarkerSize(2.5)
+grpChi2RefB.SetMarkerSize(2.5)
+grpChi2RefS.SetMarkerColor(kGreen+2)
+grpChi2RefB.SetMarkerColor(kMagenta)
+
+grpChi2Ref2S, grpChi2Ref2B = TGraph(), TGraph()
+grpChi2Ref2S.SetTitle("BDT sig. (opt.)")
+grpChi2Ref2B.SetTitle("BDT bkg. (opt.)")
+grpChi2Ref2S.SetMarkerSize(2.0)
+grpChi2Ref2B.SetMarkerSize(2.0)
+grpChi2Ref2S.SetMarkerStyle(kFullTriangleUp)
+grpChi2Ref2B.SetMarkerStyle(kFullTriangleUp)
+grpChi2Ref2S.SetMarkerColor(kBlue+1)
+grpChi2Ref2B.SetMarkerColor(kRed)
 
 dnnNodes = [16,32,64,128,256,512]
 nX, nY = len(dnnNodes), 20
@@ -88,11 +132,20 @@ for i, x in enumerate(dnnNodes):
     hAUC2D_DNN.GetXaxis().SetBinLabel(i+1, "%d" % x)
     hAUC2D_Keras.GetXaxis().SetBinLabel(i+1, "%d" % x)
 
-for i, (name, [(fName, objPath), auc]) in enumerate(grps.iteritems()):
+for i, (name, [(fName, objPath), auc, chi2S, chi2B]) in enumerate(grps.iteritems()):
     grpAUC.SetPoint(i, i, auc)
-    for pattern, (title, color, grp) in grpAUCRefs.iteritems():
+    grpChi2S.SetPoint(i, auc, chi2S)
+    grpChi2B.SetPoint(i, auc, chi2B)
+    for pattern0, (title, color, grp) in grpAUCRefs.iteritems():
+        pattern = pattern0.replace("+", "\\+")
         if not re.match('^'+pattern+'$', name): continue
         grp.SetPoint(i, i, auc)
+    if name == "Keras+TF":
+        grpChi2RefS.SetPoint(grpChi2RefS.GetN(), auc, chi2S)
+        grpChi2RefB.SetPoint(grpChi2RefB.GetN(), auc, chi2B)
+    if name == "BDT_nCuts40_maxDepth3_minNode2p5_nTree850":
+        grpChi2Ref2S.SetPoint(grpChi2Ref2S.GetN(), auc, chi2S)
+        grpChi2Ref2B.SetPoint(grpChi2Ref2B.GetN(), auc, chi2B)
     if 'DNN_' in name and '_X' in name:
         w, x, y = name.split('DNN_')[-1].split('_')
         x, y = int(x[1:]), int(y[1:])
@@ -116,7 +169,7 @@ grpsToDraw = []
 legROC = buildLegend(0.2, 0.15, 0.8, 0.6)
 if len(grps) > 5:
     legROC.AddEntry(0, "Top 5", "p").SetMarkerColor(kWhite)
-for i, (name, [(fName, objPath), auc]) in enumerate(grps.iteritems()):
+for i, (name, [(fName, objPath), auc, chi2S, chi2B]) in enumerate(grps.iteritems()):
     if len(grps) > 10 and i >= 5: break
     grp = buildROC(fName, objPath)
     grp.SetLineColor(colors[i])
@@ -125,7 +178,7 @@ for i, (name, [(fName, objPath), auc]) in enumerate(grps.iteritems()):
 if len(grps) > 10:
     legROC.AddEntry(0, "", "p").SetMarkerColor(kWhite)
     legROC.AddEntry(0, "Worst 5", "p").SetMarkerColor(kWhite)
-    for i, (name, [(fName, objPath), auc]) in enumerate(reversed([x for x in grps.iteritems()])):
+    for i, (name, [(fName, objPath), auc, chi2S, chi2B]) in enumerate(reversed([x for x in grps.iteritems()])):
         if i >= 5: break
         grp = buildROC(fName, objPath)
         grp.SetLineColor(colors[i+5])
@@ -156,6 +209,24 @@ for name, (title, color, grp) in grpAUCRefs.iteritems():
     grp.Draw("p")
     grp.SetEditable(False)
 legAUC.Draw()
+
+cChi2 = TCanvas("cChi2", "cChi2", 500, 500)
+cChi2.SetLogy()
+hFrameChi2 = TH1F("hChi2Frame", "hChi2Frame;Area under curve;#chi^{2}/dof", 100, 0.735, 0.755)
+hFrameChi2.SetMinimum(0.5)
+hFrameChi2.SetMaximum(1e2)
+hFrameChi2.GetXaxis().SetNdivisions(505)
+hFrameChi2.Draw()
+legChi2 = buildLegend(0.2, 0.6, 0.5, 0.8)
+for grp in (grpChi2S, grpChi2B):
+    grp.Draw("p")
+    grp.SetEditable(False)
+    legChi2.AddEntry(grp, grp.GetTitle(), "f")
+for grp in (grpChi2RefS, grpChi2RefB, grpChi2Ref2S, grpChi2Ref2B):
+    grp.Draw("p")
+    grp.SetEditable(False)
+    legChi2.AddEntry(grp, grp.GetTitle(), "p")
+legChi2.Draw()
 
 cAUC2D_DNN = TCanvas("cAUC2D_DNN", "cAUC2D_DNN", 500, 500)
 cAUC2D_DNN.SetRightMargin(0.16)
