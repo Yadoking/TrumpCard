@@ -1,51 +1,13 @@
 #ifdef __CLING__
 R__LOAD_LIBRARY(libDelphes)
+#endif
 #include "classes/DelphesClasses.h"
 #include "external/ExRootAnalysis/ExRootTreeReader.h"
 #include "TTree.h"
 #include "TFile.h"
+#include "TClonesArray.h"
 #include "TSystem.h"
-#endif
-
-void makeFlatTuple(const std::string finName, const std::string foutName);
-void makeFlatTuple()
-{
-  gSystem->Load("libDelphes");
-
-  auto workItem = [](UInt_t workerID) {
-    const std::string finName = Form("/data/users/jhgoh/MG5/tt_sm_LO/20170809_1/run_%02d.root", workerID+1);
-    const std::string foutName = Form("tt/ntuple_%02d.root", workerID+1);
-
-    if ( !gSystem->OpenDirectory("tt") ) gSystem->mkdir("tt");
-    if ( !gSystem->AccessPathName(foutName.c_str()) ) {
-      cout << "!! File " << foutName << " already exists. skip.\n";
-      return 0;
-    }
-    TFile f(finName.c_str());
-    if ( gSystem->AccessPathName(finName.c_str()) or !f.IsOpen() ) {
-      cout << "!! File " << finName << " cannot be opened. skip.\n";
-      return 0;
-    }
-
-    makeFlatTuple(finName, foutName);
-    return 0;
-  };
-
-  SysInfo_t sysInfo;
-  gSystem->GetSysInfo(&sysInfo);
-  cout << "@@ Working with " << sysInfo.fCpus << " CPUs\n";
-  ROOT::TProcessExecutor workers(sysInfo.fCpus);
-  workers.Map(workItem, ROOT::TSeqI(100));
-
-  if ( gSystem->AccessPathName("ntuple_tch.root") ) {
-    cout << "@@ Processing tch...\n";
-    makeFlatTuple("/home/minerva1993/public/delphes_analysis/tch_run01.root", "ntuple_tch.root");
-  }
-  if ( gSystem->AccessPathName("ntuple_ttbb.root") ) {
-    cout << "@@ Processing ttbb...\n";
-    makeFlatTuple("/home/minerva1993/public/delphes_analysis/ttbb_run02.root", "ntuple_ttbb.root");
-  }
-}
+#include <iostream>
 
 //------------------------------------------------------------------------------
 int getLast(TClonesArray* branch, const int iGen)
@@ -104,6 +66,7 @@ void makeFlatTuple(const std::string finName, const std::string foutName)
 
   tree->Branch("run", &b_run, "run/s");
   tree->Branch("event", &b_event, "event/i");
+  tree->Branch("weight", &b_weight, "weight/F");
 
   tree->Branch("met_pt", &b_met_pt, "met_pt/F");
   tree->Branch("met_phi", &b_met_phi, "met_phi/F");
@@ -174,7 +137,7 @@ void makeFlatTuple(const std::string finName, const std::string foutName)
   for(Int_t entry = 0; entry < numberOfEntries; ++entry) {
     // Load selected branches with data from specified event
     treeReader->ReadEntry(entry);
-    cout << entry << '/' << numberOfEntries << '\r';
+    std::cout << entry << '/' << numberOfEntries << '\r';
 
     const HepMCEvent* event = (const HepMCEvent*)branchEvent->At(0);
     b_event = event->Number;
@@ -380,7 +343,7 @@ void makeFlatTuple(const std::string finName, const std::string foutName)
           else b_subjets_pdgId[b_subjets_n] = 2112; // set as neutron
         }
         else {
-          cout << obj->IsA()->GetName() << endl;
+          std::cout << obj->IsA()->GetName() << endl;
           continue;
         }
         b_subjets_jetIdx[b_subjets_n] = b_jets_n;
