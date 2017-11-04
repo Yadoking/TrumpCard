@@ -1,4 +1,5 @@
-#ifdef __CLING__
+//#ifdef __CLING__
+#ifdef __CINT__
 R__LOAD_LIBRARY(libDelphes)
 #endif
 #include "classes/DelphesClasses.h"
