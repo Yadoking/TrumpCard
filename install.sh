@@ -31,8 +31,11 @@ if [ -d /usr/local/cuda ]; then
     echo 'USE_CUDA_PATH = /usr/local/cuda' >> config.mk
     echo 'USE_CUDNN = 1' >> config.mk
 fi
+make -j $(nproc)
+cd python
+python setup.py install
 
-cd ../../
+cd ../../../..
 
 pip install pydot keras 
 pip install -U scikit-learn
