@@ -146,17 +146,15 @@ elif mvaType0.split('_', 1)[0] == "DNN":
     factory.BookMethod(loader, TMVA.Types.kDNN, name, ":".join(dnnOpts))
 
 elif mvaType0.split('_', 1)[0] == "Keras":
+    if hasCUDA:
+        os.environ["CUDA_VISIBLE_DEVICES"] = "0,1"
+    else:
+        os.environ["CUDA_VISIBLE_DEVICES"] = ""
+
     import google.protobuf
     import keras
     import tensorflow as tf
-    if hasCUDA:
-        config = tf.ConfigProto()
-        config.gpu_options.visible_device_list = "1"
-    else:
-        os.environ["CUDA_VISIBLE_DEVICES"] = ""
-        config = tf.ConfigProto(
-            device_count = {"GPU":0}
-        )
+    config = tf.ConfigProto()
     keras.backend.tensorflow_backend.set_session(tf.Session(config=config))
 
     if 'ReLU' == ftnName: activation = 'relu'
