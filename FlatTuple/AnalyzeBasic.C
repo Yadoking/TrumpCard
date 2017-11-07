@@ -12,6 +12,7 @@ const double CSVM = 0.5; // this is just to distinguish 0 or 1 for Delphes
 
 AnalyzeBasic::TTLJSolution AnalyzeBasic::solveByDeltaR(TLorentzVector lepP4, TLorentzVector metP4, std::vector<size_t> jetIdxs) const
 {
+  // Find solution with minimum deltaR
   if ( jetIdxs.size() < 4 ) return TTLJSolution();
 
   // Sort by pT
@@ -77,6 +78,7 @@ AnalyzeBasic::TTLJSolution AnalyzeBasic::solveByDeltaR(TLorentzVector lepP4, TLo
 
 AnalyzeBasic::TTLJSolution AnalyzeBasic::solveByM3(TLorentzVector lepP4, TLorentzVector metP4, std::vector<size_t> jetIdxs) const
 {
+  // Find solution by M3 - trijet with maximum pT
   if ( jetIdxs.size() < 4 ) return TTLJSolution();
 
   // Sort by pT
@@ -119,6 +121,70 @@ AnalyzeBasic::TTLJSolution AnalyzeBasic::solveByM3(TLorentzVector lepP4, TLorent
   }
   if ( maxPt <= 0 ) return TTLJSolution(); // Can happen if there's no b-jet pair
   sol.quality = maxPt;
+
+  // Then move to the leptonic part, just pick the first non-overalpping one
+  for ( auto ii : jetIdxs ) {
+    if ( ii == sol.hadJ1Idx or ii == sol.hadJ2Idx or ii == sol.hadJ3Idx ) continue;
+    sol.lepB.SetPtEtaPhiM(jets_pt[ii], jets_eta[ii], jets_phi[ii], jets_m[ii]);
+    sol.lepBIdx = ii;
+    break;
+  }
+  sol.lep = lepP4;
+  sol.met = metP4;
+
+  sol.isValid = true;
+  return sol;
+}
+
+AnalyzeBasic::TTLJSolution AnalyzeBasic::solveByMTop(TLorentzVector lepP4, TLorentzVector metP4, std::vector<size_t> jetIdxs) const
+{
+  // Find solution by closest mass to the PDG average
+  if ( jetIdxs.size() < 4 ) return TTLJSolution();
+
+  // Sort by pT
+  std::sort(jetIdxs.begin(), jetIdxs.end(),
+            [&](size_t a, size_t b) {return jets_pt[a] > jets_pt[b];});
+  // Then move b-jets to front, keeping the pT ordering
+  std::stable_sort(jetIdxs.begin(), jetIdxs.end(),
+                   [&](size_t a, size_t b) {return (jets_bTag[a]>CSVM) > (jets_bTag[b]>CSVM);});
+
+  TTLJSolution sol;
+
+  double minChi2 = 1e9;
+  TLorentzVector j1P4, j2P4, j3P4;
+  for ( auto i = jetIdxs.begin(); i != jetIdxs.end(); ++i ) {
+    const size_t ii = *i;
+    if ( jets_bTag[ii] < CSVM ) continue;
+    j1P4.SetPtEtaPhiM(jets_pt[ii], jets_eta[ii], jets_phi[ii], jets_m[ii]);
+    for ( auto j = std::next(i); j != jetIdxs.end(); ++j ) {
+      const size_t jj = *j;
+      if ( jets_bTag[jj] < CSVM ) continue;
+      j2P4.SetPtEtaPhiM(jets_pt[jj], jets_eta[jj], jets_phi[jj], jets_m[jj]);
+      const auto wP4 = j1P4+j2P4;
+      const double dmW = 0; // Just a dummy
+      //const double dmW = std::abs(wP4.M()-125);
+
+      for ( auto k = jetIdxs.begin(); k != jetIdxs.end(); ++k ) {
+        const size_t kk = *k;
+        if ( kk == ii or kk == jj ) continue;
+        j3P4.SetPtEtaPhiM(jets_pt[kk], jets_eta[kk], jets_phi[kk], jets_m[kk]);
+        const auto tP4 = wP4+j3P4;
+        const double dmT = std::abs(tP4.M()-172.5);
+        if ( dmW+dmT < minChi2 ) {
+          minChi2 = dmW+dmT;
+          sol.hadJ1 = j1P4;
+          sol.hadJ2 = j2P4;
+          sol.hadJ3 = j3P4;
+          sol.hadJ1Idx = ii;
+          sol.hadJ2Idx = jj;
+          sol.hadJ3Idx = kk;
+        }
+      }
+    }
+  }
+
+  if ( minChi2 >= 1e8 ) return TTLJSolution(); // Can happen if there's no b-jet pair
+  sol.quality = minChi2;
 
   // Then move to the leptonic part, just pick the first non-overalpping one
   for ( auto ii : jetIdxs ) {
@@ -190,7 +256,7 @@ void AnalyzeBasic::Loop(const string outFileName)
   float b_hadW23_pt, b_hadW23_eta, b_hadW23_phi, b_hadW23_m, b_hadW23_dR;
   float b_hadW13_pt, b_hadW13_eta, b_hadW13_phi, b_hadW13_m, b_hadW13_dR;
   float b_hadT_pt, b_hadT_eta, b_hadT_phi, b_hadT_m;
-  //float b_theta1, b_theta2;
+  float b_theta1, b_theta2;
   float b_lepB_bTag, b_hadJ1_bTag, b_hadJ2_bTag, b_hadJ3_bTag;
 
   tree->Branch("run", &b_run, "run/I");
@@ -270,8 +336,8 @@ void AnalyzeBasic::Loop(const string outFileName)
   tree->Branch("hadT_eta", &b_hadT_eta, "hadT_eta/F");
   tree->Branch("hadT_phi", &b_hadT_phi, "hadT_phi/F");
 
-  //tree->Branch("theta1", &b_theta1, "theta1/F"); // Angle between top and b
-  //tree->Branch("theta2", &b_theta2, "theta2/F"); // Angle between t-b and w->jj plane
+  tree->Branch("theta1", &b_theta1, "theta1/F"); // Angle between top and b
+  tree->Branch("theta2", &b_theta2, "theta2/F"); // Angle between t-b and w->jj plane
   tree->Branch("lepB_bTag", &b_lepB_bTag, "lepB_bTag/F");
   tree->Branch("hadJ1_bTag", &b_hadJ1_bTag, "hadJ1_bTag/F");
   tree->Branch("hadJ2_bTag", &b_hadJ2_bTag, "hadJ2_bTag/F");
@@ -388,6 +454,7 @@ void AnalyzeBasic::Loop(const string outFileName)
 
     auto sol = solveByDeltaR(leptonP4, metP4, jetIdxs);
     //auto sol = solveByM3(leptonP4, metP4, jetIdxs);
+    //auto sol = solveByMTop(leptonP4, metP4, jetIdxs);
     if ( !sol.isValid ) continue;
 
     // Do the deltaR matching to the reconstructed objects
@@ -426,7 +493,6 @@ void AnalyzeBasic::Loop(const string outFileName)
     b_hadJ2_bTag = jets_bTag[sol.hadJ2Idx];
     b_hadJ3_bTag = jets_bTag[sol.hadJ3Idx];
 
-/*
     TLorentzVector cm_hb = sol.hadJ3, cm_hj1 = sol.hadJ1, cm_hj2 = sol.hadJ2;
     TLorentzVector cm_top = cm_hb+cm_hj1+cm_hj2;
     cm_hb.Boost(-cm_top.BoostVector());
@@ -439,6 +505,7 @@ void AnalyzeBasic::Loop(const string outFileName)
     b_theta1 = cm_hb.Vect().Dot(cm_top.Vect());
     b_theta2 = cm_hb.Vect().Cross(cm_hj1.Vect()).Dot(cm_hb.Vect().Cross(cm_top.Vect()));
 
+/*
     // Fill the jet image
     const double eta1 = jets_eta[bestIdxs[1]]-b_hadT_eta, phi1 = deltaPhi(jets_phi[bestIdxs[1]], b_hadT_phi);
     const double eta2 = jets_eta[bestIdxs[2]]-b_hadT_eta, phi2 = deltaPhi(jets_phi[bestIdxs[2]], b_hadT_phi);

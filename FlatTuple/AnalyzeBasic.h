@@ -134,6 +134,7 @@ public :
 
    TTLJSolution solveByDeltaR(TLorentzVector lepP4, TLorentzVector metP4, std::vector<size_t> jetIdxs) const;
    TTLJSolution solveByM3(TLorentzVector lepP4, TLorentzVector metP4, std::vector<size_t> jetIdxs) const;
+   TTLJSolution solveByMTop(TLorentzVector lepP4, TLorentzVector metP4, std::vector<size_t> jetIdxs) const;
 
    void rotate(float& phi, const float refPhi) {
      phi -= refPhi;
