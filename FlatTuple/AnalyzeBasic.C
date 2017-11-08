@@ -446,6 +446,9 @@ void AnalyzeBasic::Loop(const string outFileName)
     b_bjets_n = 0;
     for ( size_t j=0; j<jets_n; ++j ) {
       if ( jets_pt[j] < 30 or std::abs(jets_eta[j]) > 2.5 ) continue;
+      TLorentzVector jetP4;
+      jetP4.SetPtEtaPhiM(jets_pt[j], jets_eta[j], jets_phi[j], jets_m[j]);
+      if ( jetP4.DeltaR(leptonP4) < 0.3 ) continue;
       if ( jets_bTag[j] > CSVM ) ++b_bjets_n;
       jetIdxs.push_back(j);
     }
